@@ -40,7 +40,7 @@ Analyze each public user comment about SIPs / mutual fund investing in India and
     "Q8_segment_differences",
     "Q9_unmet_needs"
   ]
-- "aiEvidenceQuality": "High" | "Medium" | "Low" (Mark "Low" if the comment is about intraday F&O/stocks and NOT mutual fund SIPs)
+- "aiEvidenceQuality": "High" | "Medium" | "Low" (Mark "Low" if the comment is about intraday F&O/stocks or generic UI rants and NOT mutual fund SIPs)
 - "aiConfidence": number between 0.55 and 0.99
 - "aiSummary": 1-sentence PM synthesis of the root cause or user behaviour (no investment advice, no FOMO).
 
@@ -62,33 +62,33 @@ function heuristicClassify(item: { id: string; text: string }) {
     };
   }
 
-  if (t.includes("allot") || t.includes("0 units") || t.includes("bse") || t.includes("2 pm") || t.includes("cams")) {
-    return {
-      id: item.id,
-      aiTheme: "Allotment & T+2 NAV Trust Gap",
-      aiStage: "onboarding_mandate",
-      aiChurnType: "at_risk_confusion",
-      aiDiscoveryQuestions: ["Q5_in_app_confusion_worry", "Q3_why_pause_reduce_stop"],
-      aiEvidenceQuality: "High",
-      aiConfidence: 0.91,
-      aiSummary: "Anxiety during the T+2 settlement window between bank debit and unit reflection in portfolio.",
-    };
-  }
-
-  if (t.includes("salary") || t.includes("bounce") || t.includes("skip") || t.includes("stipend") || t.includes("diwali") || t.includes("3 working days")) {
+  if (t.includes("modifying sip") || t.includes("update amount") || t.includes("skip") || t.includes("pause") || t.includes("salary") || t.includes("bounce") || t.includes("stipend") || t.includes("diwali") || t.includes("3 working days")) {
     return {
       id: item.id,
       aiTheme: "Rigid Cash-Flow / No Flexible Skip",
       aiStage: "cashflow_crunch",
       aiChurnType: "voluntary_pause_stop",
-      aiDiscoveryQuestions: ["Q3_why_pause_reduce_stop", "Q8_segment_differences", "Q9_unmet_needs"],
+      aiDiscoveryQuestions: ["Q3_why_pause_reduce_stop", "Q5_in_app_confusion_worry", "Q9_unmet_needs"],
       aiEvidenceQuality: "High",
       aiConfidence: 0.92,
-      aiSummary: "Cash-flow timing mismatch or lack of easy 1-month skip/step-down forces permanent SIP pause.",
+      aiSummary: "Friction in pausing, skipping an instalment, or modifying SIP amount forces users to stop the SIP completely.",
     };
   }
 
-  if (t.includes("autopay") || t.includes("mandate") || t.includes("15,000") || t.includes("3 consecutive") || t.includes("retry")) {
+  if (t.includes("cutoff") || t.includes("cut-off") || t.includes("allot") || t.includes("0 units") || t.includes("bse") || t.includes("2 pm") || t.includes("cams") || t.includes("3-4 days")) {
+    return {
+      id: item.id,
+      aiTheme: "Allotment & T+2 NAV Trust Gap",
+      aiStage: "onboarding_mandate",
+      aiChurnType: "at_risk_confusion",
+      aiDiscoveryQuestions: ["Q5_in_app_confusion_worry", "Q3_why_pause_reduce_stop", "Q9_unmet_needs"],
+      aiEvidenceQuality: "High",
+      aiConfidence: 0.91,
+      aiSummary: "Lack of cut-off time warnings and T+2/T+3 NAV allotment delays make users distrust when units will be credited.",
+    };
+  }
+
+  if (t.includes("autopay") || t.includes("mandate") || t.includes("emandate") || t.includes("e mandate") || t.includes("15,000") || t.includes("3 consecutive") || t.includes("retry")) {
     return {
       id: item.id,
       aiTheme: "Autopay & Mandate Friction",
@@ -96,12 +96,12 @@ function heuristicClassify(item: { id: string; text: string }) {
       aiChurnType: "involuntary_payment_kyc_fail",
       aiDiscoveryQuestions: ["Q3_why_pause_reduce_stop", "Q5_in_app_confusion_worry", "Q9_unmet_needs"],
       aiEvidenceQuality: "High",
-      aiConfidence: 0.9,
-      aiSummary: "UPI Autopay / OTM mandate friction or missed-debit retry gap threatens SIP continuity.",
+      aiConfidence: 0.91,
+      aiSummary: "eMandate / UPI Autopay linking failures or bank mandate confusion blocks recurring SIP instalments.",
     };
   }
 
-  if (t.includes("kyc") || t.includes("kra") || t.includes("pan")) {
+  if (t.includes("kyc") || t.includes("kra") || t.includes("digilocker") || t.includes("folio") || t.includes("pan")) {
     return {
       id: item.id,
       aiTheme: "KYC / Bank / Folio Operational Block",
@@ -109,47 +109,60 @@ function heuristicClassify(item: { id: string; text: string }) {
       aiChurnType: "involuntary_payment_kyc_fail",
       aiDiscoveryQuestions: ["Q3_why_pause_reduce_stop", "Q5_in_app_confusion_worry"],
       aiEvidenceQuality: "High",
-      aiConfidence: 0.89,
-      aiSummary: "Operational KYC/KRA hold blocked SIP execution and undermined platform trust.",
+      aiConfidence: 0.9,
+      aiSummary: "KYC verification loops, DigiLocker failures, or folio-linking blocks prevent SIP onboarding and execution.",
     };
   }
 
-  if (t.includes("youtube") || t.includes("7 different") || t.includes("too many funds")) {
+  if (t.includes("nav chart") || t.includes("xirr") || t.includes("p&l") || t.includes("redeemable units")) {
+    return {
+      id: item.id,
+      aiTheme: "Allotment & T+2 NAV Trust Gap",
+      aiStage: "month_1_to_3_expectations",
+      aiChurnType: "at_risk_confusion",
+      aiDiscoveryQuestions: ["Q4_what_and_how_often_check", "Q5_in_app_confusion_worry", "Q9_unmet_needs"],
+      aiEvidenceQuality: "Medium",
+      aiConfidence: 0.87,
+      aiSummary: "Missing or confusing NAV charts, XIRR vs absolute return labels, or locked-unit displays create in-app anxiety.",
+    };
+  }
+
+  if (t.includes("step-up") || t.includes("step up") || t.includes("12 months") || t.includes("14 months") || t.includes("goal") || t.includes("consistency")) {
+    return {
+      id: item.id,
+      aiTheme: "Long-Term Habit & Goal Clarity",
+      aiStage: "habit_decay_month_6_12",
+      aiChurnType: "retained_habit",
+      aiDiscoveryQuestions: ["Q7_continue_vs_quiet_dropoff", "Q2_behaviour_change_after_start", "Q9_unmet_needs"],
+      aiEvidenceQuality: "High",
+      aiConfidence: 0.93,
+      aiSummary: "Goal tracking, salary-day alignment, and automated SIP step-up options support long-term SIP continuation.",
+    };
+  }
+
+  if (t.includes("youtube") || t.includes("7 different") || t.includes("too many funds") || t.includes("genius")) {
     return {
       id: item.id,
       aiTheme: "Portfolio Clutter & Fund Selection Doubt",
       aiStage: "habit_decay_month_6_12",
       aiChurnType: "voluntary_pause_stop",
       aiDiscoveryQuestions: ["Q1_why_start_expectations", "Q6_outside_app_validation", "Q3_why_pause_reduce_stop"],
-      aiEvidenceQuality: "High",
-      aiConfidence: 0.88,
-      aiSummary: "Over-diversification across many small SIPs creates tracking fatigue and mid-year drop-off.",
+      aiEvidenceQuality: "Medium",
+      aiConfidence: 0.86,
+      aiSummary: "Feature bloat, paid advisory upsells, or holding too many funds creates decision fatigue and app switching.",
     };
   }
 
-  if (t.includes("12 months") || t.includes("14 months") || t.includes("goal") || t.includes("consistency")) {
-    return {
-      id: item.id,
-      aiTheme: "Long-Term Habit & Goal Clarity",
-      aiStage: "habit_decay_month_6_12",
-      aiChurnType: "retained_habit",
-      aiDiscoveryQuestions: ["Q7_continue_vs_quiet_dropoff", "Q2_behaviour_change_after_start"],
-      aiEvidenceQuality: "High",
-      aiConfidence: 0.94,
-      aiSummary: "Goal-tagging, salary-day alignment, and focusing on unit accumulation separated continuers from drop-offs.",
-    };
-  }
-
-  if (t.includes("red") || t.includes("crash") || t.includes("gira") || t.includes("-4.8%") || t.includes("extra units")) {
+  if (t.includes("bear") || t.includes("red") || t.includes("crash") || t.includes("gira") || t.includes("-4.8%") || t.includes("extra units")) {
     return {
       id: item.id,
       aiTheme: "Market Dip Panic & Loss Aversion",
       aiStage: "market_dip_reaction",
       aiChurnType: "at_risk_confusion",
-      aiDiscoveryQuestions: ["Q3_why_pause_reduce_stop", "Q5_in_app_confusion_worry", "Q9_unmet_needs"],
+      aiDiscoveryQuestions: ["Q3_why_pause_reduce_stop", "Q5_in_app_confusion_worry", "Q7_continue_vs_quiet_dropoff"],
       aiEvidenceQuality: "High",
-      aiConfidence: 0.93,
-      aiSummary: "First market dip triggers loss aversion because the app highlights red P&L instead of extra units accumulated.",
+      aiConfidence: 0.92,
+      aiSummary: "Market corrections trigger SIP stoppages among retail investors who react to short-term negative returns.",
     };
   }
 
@@ -158,10 +171,10 @@ function heuristicClassify(item: { id: string; text: string }) {
     aiTheme: "Early Returns Disappointment (Month 1–4)",
     aiStage: "month_1_to_3_expectations",
     aiChurnType: "at_risk_confusion",
-    aiDiscoveryQuestions: ["Q1_why_start_expectations", "Q2_behaviour_change_after_start", "Q4_what_and_how_often_check"],
+    aiDiscoveryQuestions: ["Q1_why_start_expectations", "Q2_behaviour_change_after_start", "Q5_in_app_confusion_worry"],
     aiEvidenceQuality: "Medium",
-    aiConfidence: 0.85,
-    aiSummary: "Expectation gap between promised compounding and flat/volatile returns in the first few months.",
+    aiConfidence: 0.84,
+    aiSummary: "Early-stage dissatisfaction with returns, fees, or complex UX after starting a mutual fund SIP.",
   };
 }
 
@@ -181,7 +194,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         results,
         mode: "deterministic_fallback",
-        message: "Classified using deterministic SIP rules engine (add a Gemini API key for live LLM inference).",
+        message: `Classified ${items.length} comments (add Gemini API key for live LLM inference).`,
       });
     }
 
@@ -221,7 +234,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         results: fallbackResults,
         mode: "deterministic_fallback",
-        message: `Gemini API returned ${response.status} (${errText.slice(0, 120)}). Used deterministic fallback classifier.`,
+        message: `Gemini API returned ${response.status} (${errText.slice(0, 80)}). Used built-in classifier.`,
       });
     }
 

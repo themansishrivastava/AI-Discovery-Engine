@@ -12,18 +12,17 @@ import {
   JourneyStage,
   DiscoveryQuestionId,
 } from "@/data/seedData";
+import { GROWW_PLAY_DUMP_ITEMS, GROWW_PLAY_DUMP_STATS } from "@/data/growwPlayDump";
+import Link from "next/link";
 import {
   Sparkles,
   Upload,
   CheckCircle2,
-  AlertTriangle,
-  XCircle,
   Search,
   GitBranch,
   FileText,
   ShieldCheck,
   Database,
-  SlidersHorizontal,
   Download,
   Copy,
   Check,
@@ -33,6 +32,7 @@ import {
   Layers,
   CheckSquare,
   Square,
+  ExternalLink,
 } from "lucide-react";
 
 const ALL_THEMES: PrimaryTheme[] = [
@@ -97,7 +97,11 @@ const EVALUATOR_CHECKLIST = [
 
 export default function GrowwDiscoveryEnginePage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("explorer");
-  const [items, setItems] = useState<EvidenceItem[]>(SEED_EVIDENCE);
+  const [items, setItems] = useState<EvidenceItem[]>([
+    ...SEED_EVIDENCE.slice(0, 30),
+    ...GROWW_PLAY_DUMP_ITEMS,
+  ]);
+  const [visibleCount, setVisibleCount] = useState(30);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedQuestion, setSelectedQuestion] = useState<DiscoveryQuestionId | "ALL">("ALL");
   const [selectedStage, setSelectedStage] = useState<JourneyStage | "ALL">("ALL");
@@ -203,13 +207,32 @@ export default function GrowwDiscoveryEnginePage() {
       .sort((a, b) => b.total - a.total);
   }, [items]);
 
+  const validItemsCount = useMemo(
+    () => items.filter((i) => i.pmOverrideStatus !== "rejected").length,
+    [items]
+  );
+  const rejectedItemsCount = useMemo(
+    () => items.filter((i) => i.pmOverrideStatus === "rejected").length,
+    [items]
+  );
+
   const sourceVolumes = useMemo(() => {
-    const counts: Record<string, number> = {};
+    const counts: Record<string, { valid: number; rejected: number }> = {};
     items.forEach((i) => {
-      counts[i.source] = (counts[i.source] || 0) + 1;
+      if (!counts[i.source]) counts[i.source] = { valid: 0, rejected: 0 };
+      if (i.pmOverrideStatus === "rejected") {
+        counts[i.source].rejected += 1;
+      } else {
+        counts[i.source].valid += 1;
+      }
     });
-    return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    return Object.entries(counts)
+      .map(([src, c]) => [src, c.valid] as [string, number])
+      .sort((a, b) => b[1] - a[1]);
   }, [items]);
+
+  const [showFullGoldenTable, setShowFullGoldenTable] = useState(false);
+  const [goldenFilter, setGoldenFilter] = useState<"ALL" | "DISAGREED" | "MATCHED">("ALL");
 
   function toggleCardExpand(id: string) {
     setExpandedCards((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -282,19 +305,42 @@ export default function GrowwDiscoveryEnginePage() {
     }
   }
 
+  function splitCsvLine(line: string): string[] {
+    const result: string[] = [];
+    let current = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (ch === "," && !inQuotes) {
+        result.push(current.trim());
+        current = "";
+      } else {
+        current += ch;
+      }
+    }
+    result.push(current.trim());
+    return result;
+  }
+
   async function parseAndIngestCsvText(raw: string, limit = 40) {
     const lines = raw.split(/\r?\n/).filter((l) => l.trim().length > 0);
     if (lines.length < 2) return;
 
-    const headers = lines[0].split(",").map((h) => h.trim().toLowerCase().replace(/^"|"$/g, ""));
+    const headers = splitCsvLine(lines[0]).map((h) => h.toLowerCase());
     const textIdx = headers.findIndex((h) => h.includes("text") || h.includes("comment") || h.includes("review") || h.includes("body"));
     const sourceIdx = headers.findIndex((h) => h.includes("source") || h.includes("subreddit") || h.includes("channel"));
     const segmentIdx = headers.findIndex((h) => h.includes("segment") || h.includes("user"));
 
     const uploadedItems: EvidenceItem[] = [];
     for (let i = 1; i < Math.min(lines.length, limit + 1); i++) {
-      const cols = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || lines[i].split(",");
-      const cleanCols = cols.map((c) => c.replace(/^"|"$/g, "").trim());
+      const cleanCols = splitCsvLine(lines[i]);
       const commentText = textIdx >= 0 ? cleanCols[textIdx] : cleanCols[cleanCols.length - 1];
       if (!commentText || commentText.length < 15) continue;
 
@@ -404,34 +450,36 @@ export default function GrowwDiscoveryEnginePage() {
 
     const goldenRows = items
       .filter((i) => i.isGoldenSet)
-      .map(
-        (g) =>
-          `| ${g.id} | ${g.source} | ${g.humanGoldenTheme} | ${g.aiTheme} | ${
-            g.aiTheme === g.humanGoldenTheme && g.pmOverrideStatus !== "rejected" ? "Match" : "Disagreed"
-          } |`
-      )
+      .map((g) => {
+        const truthLabel =
+          g.pmOverrideStatus === "rejected"
+            ? "Out-of-Scope Noise (F&O Trading)"
+            : g.pmOverrideTheme || g.humanGoldenTheme;
+        return `| ${g.id} | ${g.source} | ${truthLabel} | ${g.aiTheme} | ${
+          g.aiTheme === g.humanGoldenTheme && g.pmOverrideStatus !== "rejected" ? "Match" : "Disagreed"
+        } |`;
+      })
       .join("\n");
 
-    return `# AI Evidence Log — Groww 12-Month SIP Retention Discovery Engine
+    return `# AI Evidence Log
 
-## 1. Goal & Constraints
-- **North-Star Metric:** Increase % of first-time mutual fund investors with an active SIP at Month 12.
-- **Guardrails:** No fund/stock recommendations. No fear, FOMO, or urgency nudges.
-
-## 2. Sources & Volume Analysed (${items.length} items)
-| Source Channel | Volume | Method |
+## 1. Sources and Volume Analysed (${validItemsCount} valid SIP items + ${rejectedItemsCount} excluded F&O noise = ${items.length} total)
+| Source | Volume | Notes |
 | --- | --- | --- |
 ${sourceLines}
 
-## 3. Golden Set Evaluation (${goldenMetrics.total} Hand-Labelled Items)
-- **Theme Agreement Rate:** **${goldenMetrics.themeAgreementPct}%** (${goldenMetrics.themeMatches}/${goldenMetrics.total})
-- **Stage Agreement Rate:** **${goldenMetrics.stageAgreementPct}%** (${goldenMetrics.stageMatches}/${goldenMetrics.total})
+## 2. Golden Set Evaluation (${goldenMetrics.total} Hand-Labelled Items)
+- **Agreement Rate:** **${goldenMetrics.themeAgreementPct}%** (${goldenMetrics.themeMatches}/${goldenMetrics.total} agreed with hand labels)
+- **Where the Engine Failed:**
+  1. Confused **symptom vs. root cause** (tagged a late-salary ₹295 NACH bounce penalty as onboarding *Autopay Friction* instead of Month-5 *Rigid Cash-Flow / No Flexible Skip*).
+  2. Confused **mental-model mismatch vs. operational block** (tagged a user surprised by 1% exit load & STCG tax at 6 months as a *KYC/Bank Block* rather than *Early Expectation Mismatch*).
+  3. Included **non-SIP product noise** (tagged an intraday BankNifty F&O complaint as SIP market-dip panic before PM rejection).
 
-| ID | Source | Hand Label (PM Truth) | AI Prediction | Agreement |
+| ID | Source | Hand Label (PM) | Engine Output | Result |
 | --- | --- | --- | --- | --- |
 ${goldenRows}
 
-## 4. Documented PM Rejections & Corrections (${goldenMetrics.overrides.length} items)
+## 3. Places Where AI Output Was Rejected or Corrected (${goldenMetrics.overrides.length} items)
 ${overrideLines}
 `;
   }, [items, sourceVolumes, goldenMetrics]);
@@ -453,31 +501,24 @@ ${overrideLines}
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
-      {/* Clean White Header */}
+    <div className="min-h-screen bg-[#F8F9FA] text-slate-900 flex flex-col">
+      {/* Clean Minimalist Groww-Style Top Navbar */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-[#00B386] text-white flex items-center justify-center font-bold text-base shadow-sm">
-              G
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="font-display font-bold text-base sm:text-lg text-slate-900">
-                  Groww SIP Discovery Engine
-                </h1>
-                <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-[#00B386] border border-emerald-200">
-                  12M SIP Retention
-                </span>
-              </div>
-              <p className="text-xs text-slate-500">
-                First-time mutual fund investor research • Guardrails: No fund advice, no FOMO
-              </p>
-            </div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+          {/* Left: Official Groww Logo + Clean Black Title */}
+          <div className="flex items-center gap-3 shrink-0">
+            <img
+              src="/groww-logo.png"
+              alt="Groww"
+              className="w-8 h-8 rounded-full object-cover"
+            />
+            <span className="font-display font-bold text-lg tracking-tight text-slate-900">
+              Groww SIP Discovery Engine
+            </span>
           </div>
 
-          {/* Simple Action Controls */}
-          <div className="flex flex-wrap items-center gap-2">
+          {/* Right: Clean All-Black/Neutral Controls */}
+          <div className="flex items-center gap-2 overflow-x-auto">
             <div className="relative">
               <KeyRound className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input
@@ -485,233 +526,185 @@ ${overrideLines}
                 value={geminiApiKey}
                 onChange={(e) => setGeminiApiKey(e.target.value)}
                 placeholder="Gemini Key (optional)"
-                className="bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-2.5 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#00B386] w-40"
+                className="bg-white border border-slate-200 rounded-md pl-8 pr-2.5 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-900 w-40"
               />
             </div>
 
             <button
               onClick={() => handleRunAiClassification(items)}
               disabled={isClassifying}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#00B386] text-white hover:bg-[#009973] transition disabled:opacity-50 shadow-sm"
+              className="px-3 py-1.5 rounded-md text-xs font-medium bg-slate-900 text-white hover:bg-slate-800 transition disabled:opacity-50 whitespace-nowrap"
             >
-              <Sparkles className="w-3.5 h-3.5" />
               {isClassifying ? "Running..." : "Run AI"}
             </button>
 
             <button
               onClick={handleLoadRealScrapedCsv}
               disabled={isClassifying}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 transition"
-              title="Load 25 live scraped reviews from Apple App Store RSS & TradingQ&A"
+              className="px-3 py-1.5 rounded-md text-xs font-medium bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 transition whitespace-nowrap"
             >
-              + Load Live Scraped Reviews
+              + Load Scraped Reviews
             </button>
 
-            <label className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 cursor-pointer transition">
-              <Upload className="w-3.5 h-3.5 text-[#00B386]" />
+            <label className="px-3 py-1.5 rounded-md text-xs font-medium bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 cursor-pointer transition whitespace-nowrap">
               <span>Upload CSV</span>
               <input type="file" accept=".csv" onChange={handleCsvUpload} className="hidden" />
             </label>
+
+            <Link
+              href="/evidence-log"
+              className="px-3 py-1.5 rounded-md text-xs font-semibold bg-[#00B386] hover:bg-[#009973] text-white transition whitespace-nowrap"
+            >
+              AI Evidence Log ↗
+            </Link>
           </div>
         </div>
+      </header>
 
-        {/* Simple 5-Tab Bar */}
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 border-t border-slate-100 overflow-x-auto">
-          <nav className="flex items-center gap-1 py-1">
+      {/* Main Content */}
+      <main className="max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 flex-1 space-y-5">
+        {/* Clean Card-Level Tab Strip (Matches Groww 'Indian Indices | Global Indices' style with green underline) */}
+        <div className="bg-white border border-slate-200 rounded-xl px-5 pt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <nav className="flex items-center gap-8 border-b border-slate-100">
             {[
-              { id: "explorer", label: "1. Evidence Feed", icon: Database, count: `${items.length}` },
-              { id: "questions", label: "2. 9 Discovery Questions", icon: Layers, count: "9/9" },
-              { id: "metric_tree", label: "3. Metric & Opportunities", icon: GitBranch, count: "Part 2" },
-              { id: "golden_set", label: "4. Golden Set & Audit", icon: ShieldCheck, count: `${goldenMetrics.themeAgreementPct}%` },
-              { id: "evidence_log", label: "5. AI Evidence Log", icon: FileText, count: "Export" },
+              { id: "explorer", label: "Evidence Feed & 9 Discovery Questions" },
+              { id: "questions", label: "Opportunity Ranking & AI Evidence Log" },
             ].map((tab) => {
-              const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as ActiveTab)}
-                  className={`flex items-center gap-1.5 px-3 py-2 border-b-2 text-xs font-semibold whitespace-nowrap transition ${
+                  className={`py-3 border-b-2 text-sm whitespace-nowrap transition ${
                     isActive
-                      ? "border-[#00B386] text-[#00B386]"
-                      : "border-transparent text-slate-600 hover:text-slate-900"
+                      ? "border-[#00B386] font-bold text-slate-900"
+                      : "border-transparent font-normal text-slate-500 hover:text-slate-900"
                   }`}
                 >
-                  <Icon className="w-3.5 h-3.5" />
-                  <span>{tab.label}</span>
-                  <span
-                    className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                      isActive ? "bg-emerald-50 text-[#00B386]" : "bg-slate-100 text-slate-500"
-                    }`}
-                  >
-                    {tab.count}
-                  </span>
+                  {tab.label}
                 </button>
               );
             })}
           </nav>
-        </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="max-w-6xl w-full mx-auto px-4 sm:px-6 py-5 flex-1 space-y-5">
+          <div className="text-[11px] font-medium text-[#00B386] bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md mb-1 sm:mb-0">
+            AI-generated insights are only a starting point — validated by human judgment
+          </div>
+        </div>
+
         {statusMessage && (
-          <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs px-3.5 py-2 rounded-lg flex items-center justify-between">
+          <div className="bg-white border border-slate-200 text-slate-800 text-xs px-3.5 py-2 rounded-lg flex items-center justify-between">
             <span>{statusMessage}</span>
-            <button onClick={() => setStatusMessage(null)} className="text-emerald-600 hover:underline">
+            <button onClick={() => setStatusMessage(null)} className="text-slate-500 hover:underline">
               Dismiss
             </button>
           </div>
         )}
 
-        {/* EVALUATOR RUBRIC CHECKLIST BAR (Tick-off Strip) */}
-        <section className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-          <div className="flex items-center justify-between mb-2.5">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-[#00B386]" />
-              <h2 className="font-display font-bold text-xs uppercase tracking-wider text-slate-700">
-                Evaluator Quick Checklist (Click any item to verify or tick)
-              </h2>
-            </div>
-            <span className="text-xs font-medium text-slate-500">
-              {Object.values(checkedRubric).filter(Boolean).length} / {EVALUATOR_CHECKLIST.length} Verified
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
-            {EVALUATOR_CHECKLIST.map((item) => {
-              const isChecked = !!checkedRubric[item.id];
-              const isCurrentTab = activeTab === item.tab;
-              return (
-                <div
-                  key={item.id}
-                  onClick={() => setActiveTab(item.tab)}
-                  className={`p-2.5 rounded-lg border text-left cursor-pointer transition flex items-start gap-2 ${
-                    isCurrentTab
-                      ? "bg-emerald-50/60 border-[#00B386]"
-                      : "bg-slate-50/70 border-slate-200 hover:bg-slate-100/70"
-                  }`}
-                >
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleRubricCheck(item.id);
-                    }}
-                    className="mt-0.5 text-[#00B386] shrink-0"
-                  >
-                    {isChecked ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4 text-slate-400" />}
-                  </button>
-                  <div className="min-w-0">
-                    <div className="text-xs font-semibold text-slate-800 leading-snug">{item.title}</div>
-                    <div className="text-[11px] text-slate-500 truncate mt-0.5">{item.detail}</div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* TAB 1: EVIDENCE FEED */}
+        {/* TAB 1: TOP FILTERS -> 9 DISCOVERY QUESTIONS & ANSWERS -> EVIDENCE FEED */}
         {activeTab === "explorer" && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-            {/* Left Sidebar: Simple Theme Filter */}
-            <div className="lg:col-span-4 space-y-4">
-              <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-display font-bold text-sm text-slate-900">
-                    Themes Discovered ({items.length})
-                  </h3>
-                  {selectedTheme !== "ALL" && (
+          <div className="space-y-5">
+            {/* 1. Full-Width Top Filter Bar */}
+            <div className="bg-white border border-slate-200 rounded-xl p-3.5 flex flex-wrap items-center gap-2.5">
+              <div className="relative flex-1 min-w-[200px]">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search comments..."
+                  className="w-full bg-white border border-slate-200 rounded-md pl-8 pr-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-slate-900"
+                />
+              </div>
+
+              <select
+                value={selectedQuestion}
+                onChange={(e) => setSelectedQuestion(e.target.value as DiscoveryQuestionId | "ALL")}
+                className="bg-white border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800"
+              >
+                <option value="ALL">All 9 Questions</option>
+                {DISCOVERY_QUESTIONS.map((q) => (
+                  <option key={q.id} value={q.id}>
+                    {q.shortLabel}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={selectedTheme}
+                onChange={(e) => setSelectedTheme(e.target.value as PrimaryTheme | "ALL")}
+                className="bg-white border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800"
+              >
+                <option value="ALL">All Themes</option>
+                {ALL_THEMES.map((th) => (
+                  <option key={th} value={th}>
+                    {th}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={selectedStage}
+                onChange={(e) => setSelectedStage(e.target.value as JourneyStage | "ALL")}
+                className="bg-white border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800"
+              >
+                <option value="ALL">All Stages (M0–M12)</option>
+                {ALL_STAGES.map((st) => (
+                  <option key={st} value={st}>
+                    {JOURNEY_STAGE_LABELS[st].months}: {JOURNEY_STAGE_LABELS[st].label}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={selectedSource}
+                onChange={(e) => setSelectedSource(e.target.value)}
+                className="bg-white border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800"
+              >
+                {uniqueSources.map((src) => (
+                  <option key={src} value={src}>
+                    {src === "ALL" ? "All Sources" : src}
+                  </option>
+                ))}
+              </select>
+
+              <button
+                onClick={() => setShowAddCommentModal(true)}
+                className="px-3 py-1.5 rounded-md text-xs font-medium border border-slate-300 text-slate-800 hover:bg-slate-50 transition whitespace-nowrap"
+              >
+                + Test Comment
+              </button>
+            </div>
+
+            {/* 2. Two-Column Layout: User Feedback on Left (7 cols) + 9 Discovery Questions & Answers on Right (5 cols) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+              {/* Left Column: User Feedback Feed */}
+              <div className="lg:col-span-7 bg-white border border-slate-200 rounded-xl divide-y divide-slate-100">
+                <div className="px-5 py-3.5 flex items-center justify-between">
+                  <h2 className="font-display font-bold text-sm text-slate-900">
+                    User Feedback ({filteredItems.length})
+                  </h2>
+                  {(selectedQuestion !== "ALL" ||
+                    selectedTheme !== "ALL" ||
+                    selectedStage !== "ALL" ||
+                    selectedSource !== "ALL" ||
+                    searchQuery) && (
                     <button
-                      onClick={() => setSelectedTheme("ALL")}
-                      className="text-xs text-[#00B386] font-medium hover:underline"
+                      onClick={() => {
+                        setSelectedQuestion("ALL");
+                        setSelectedTheme("ALL");
+                        setSelectedStage("ALL");
+                        setSelectedSource("ALL");
+                        setSearchQuery("");
+                      }}
+                      className="text-xs font-medium text-slate-700 underline"
                     >
-                      Clear filter
+                      Reset filters
                     </button>
                   )}
                 </div>
 
-                <div className="space-y-1.5">
-                  {themeCounts.map(({ theme, total }) => {
-                    const maxCount = Math.max(...themeCounts.map((t) => t.total), 1);
-                    const pct = Math.round((total / maxCount) * 100);
-                    const isSelected = selectedTheme === theme;
-                    return (
-                      <button
-                        key={theme}
-                        onClick={() => setSelectedTheme(isSelected ? "ALL" : theme)}
-                        className={`w-full text-left px-3 py-2 rounded-lg border transition ${
-                          isSelected
-                            ? "bg-emerald-50 border-[#00B386] text-slate-900"
-                            : "bg-white border-slate-150 hover:bg-slate-50 text-slate-700"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between text-xs mb-1">
-                          <span className="font-medium truncate pr-2">{theme}</span>
-                          <span className="font-mono text-xs font-semibold text-[#00B386]">{total}</span>
-                        </div>
-                        <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-[#00B386] rounded-full" style={{ width: `${pct}%` }} />
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <button
-                  onClick={() => setShowAddCommentModal(true)}
-                  className="w-full mt-4 py-2 rounded-lg text-xs font-semibold border border-[#00B386] text-[#00B386] hover:bg-emerald-50 transition"
-                >
-                  + Test Single Comment with AI
-                </button>
-              </div>
-            </div>
-
-            {/* Right Feed: Compact Filter + Scannable Quote Cards */}
-            <div className="lg:col-span-8 space-y-3">
-              {/* Filter Bar */}
-              <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-sm flex flex-wrap items-center gap-2">
-                <div className="relative flex-1 min-w-[180px]">
-                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search comments..."
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-[#00B386]"
-                  />
-                </div>
-
-                <select
-                  value={selectedStage}
-                  onChange={(e) => setSelectedStage(e.target.value as JourneyStage | "ALL")}
-                  className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700"
-                >
-                  <option value="ALL">All Stages (M0–M12)</option>
-                  {ALL_STAGES.map((st) => (
-                    <option key={st} value={st}>
-                      {JOURNEY_STAGE_LABELS[st].months}: {JOURNEY_STAGE_LABELS[st].label}
-                    </option>
-                  ))}
-                </select>
-
-                <select
-                  value={selectedSource}
-                  onChange={(e) => setSelectedSource(e.target.value)}
-                  className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700"
-                >
-                  {uniqueSources.map((src) => (
-                    <option key={src} value={src}>
-                      {src === "ALL" ? "All Sources" : src}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Quote Cards with Read More */}
-              <div className="space-y-2.5">
-                {filteredItems.map((item) => {
+                {filteredItems.slice(0, visibleCount).map((item) => {
                   const effectiveTheme = item.pmOverrideTheme || item.aiTheme;
                   const effectiveStage = item.pmOverrideStage || item.aiStage;
                   const isRejected = item.pmOverrideStatus === "rejected";
@@ -722,36 +715,28 @@ ${overrideLines}
                   return (
                     <div
                       key={item.id}
-                      className={`bg-white rounded-xl border p-4 shadow-sm transition ${
-                        isRejected
-                          ? "border-rose-200 bg-rose-50/30 opacity-75"
-                          : isCorrected
-                          ? "border-amber-300 bg-amber-50/20"
-                          : "border-slate-200 hover:border-slate-300"
+                      className={`px-5 py-4 transition ${
+                        isRejected ? "opacity-60" : "hover:bg-slate-50/60"
                       }`}
                     >
-                      {/* One-line AI Takeaway First (Easy to scan) */}
                       <div className="flex items-start justify-between gap-3">
                         <div className="space-y-1">
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            <span className="font-mono text-[11px] font-semibold text-slate-500">
-                              {item.id}
-                            </span>
-                            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-[#00B386] border border-emerald-200">
-                              {effectiveTheme}
-                            </span>
-                            <span className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700">
-                              {JOURNEY_STAGE_LABELS[effectiveStage].months}
-                            </span>
-                            <span className="text-[11px] text-slate-500">• {item.source}</span>
+                          <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
+                            <span className="font-mono font-medium text-slate-700">{item.id}</span>
+                            <span>•</span>
+                            <span className="font-medium text-slate-800">{effectiveTheme}</span>
+                            <span>•</span>
+                            <span>{JOURNEY_STAGE_LABELS[effectiveStage].months}</span>
+                            <span>•</span>
+                            <span>{item.source}</span>
                             {isCorrected && (
-                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-amber-100 text-amber-800">
-                                ✓ PM Corrected
+                              <span className="font-semibold text-slate-900 underline">
+                                (PM Corrected)
                               </span>
                             )}
                             {isRejected && (
-                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-rose-100 text-rose-800">
-                                ✕ Rejected Noise
+                              <span className="font-semibold text-slate-900 underline">
+                                (Rejected Noise)
                               </span>
                             )}
                           </div>
@@ -763,14 +748,13 @@ ${overrideLines}
 
                         <button
                           onClick={() => openOverrideModal(item)}
-                          className="text-[11px] font-medium px-2.5 py-1 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 shrink-0"
+                          className="text-[11px] font-medium px-2.5 py-1 rounded border border-slate-200 hover:bg-slate-100 text-slate-700 shrink-0"
                         >
                           Override
                         </button>
                       </div>
 
-                      {/* Collapsible Raw User Quote */}
-                      <div className="mt-2 text-xs text-slate-600 bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
+                      <div className="mt-1.5 text-xs text-slate-600">
                         <span>
                           &ldquo;
                           {isExpanded || !isLong ? item.text : `${item.text.slice(0, 145)}...`}
@@ -779,425 +763,299 @@ ${overrideLines}
                         {isLong && (
                           <button
                             onClick={() => toggleCardExpand(item.id)}
-                            className="ml-1.5 text-[#00B386] font-semibold hover:underline inline-flex items-center gap-0.5"
+                            className="ml-1.5 text-slate-900 font-semibold hover:underline inline-flex items-center gap-0.5"
                           >
-                            {isExpanded ? (
-                              <>
-                                Show less <ChevronUp className="w-3 h-3" />
-                              </>
-                            ) : (
-                              <>
-                                Read more <ChevronDown className="w-3 h-3" />
-                              </>
-                            )}
+                            {isExpanded ? "Show less" : "Read more"}
                           </button>
                         )}
                       </div>
 
-                      {/* PM Override Note if any */}
                       {(isCorrected || isRejected) && item.pmOverrideReason && (
-                        <div className="mt-2 text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5">
+                        <div className="mt-2 text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded px-3 py-1.5">
                           <strong>PM Note:</strong> {item.pmOverrideReason}
                         </div>
                       )}
                     </div>
                   );
                 })}
+
+                {filteredItems.length > visibleCount && (
+                  <div className="p-4">
+                    <button
+                      onClick={() => setVisibleCount((prev) => prev + 40)}
+                      className="w-full py-2 rounded-lg bg-slate-50 border border-slate-200 hover:bg-slate-100 text-xs font-semibold text-slate-900 transition"
+                    >
+                      Show more ({filteredItems.length - visibleCount} remaining)
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Right Column: 9 Discovery Questions & Answers */}
+              <div className="lg:col-span-5 bg-white border border-slate-200 rounded-xl p-4 space-y-3 lg:sticky lg:top-20">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-display font-bold text-sm text-slate-900">
+                    9 Discovery Questions &amp; Answers
+                  </h2>
+                  {selectedQuestion !== "ALL" && (
+                    <button
+                      onClick={() => setSelectedQuestion("ALL")}
+                      className="text-xs font-medium text-slate-700 underline"
+                    >
+                      Clear filter
+                    </button>
+                  )}
+                </div>
+
+                <div className="space-y-2.5 max-h-[75vh] overflow-y-auto pr-1">
+                  {DISCOVERY_QUESTIONS.map((dq) => {
+                    const matching = items.filter(
+                      (i) => i.pmOverrideStatus !== "rejected" && i.aiDiscoveryQuestions.includes(dq.id)
+                    );
+                    const isSelected = selectedQuestion === dq.id;
+                    return (
+                      <div
+                        key={dq.id}
+                        onClick={() => setSelectedQuestion(isSelected ? "ALL" : dq.id)}
+                        className={`rounded-lg border p-3 cursor-pointer transition ${
+                          isSelected
+                            ? "bg-slate-50 border-slate-900"
+                            : "bg-white border-slate-200 hover:border-slate-400"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between text-xs mb-0.5">
+                          <span className="font-bold text-slate-900">{dq.shortLabel}</span>
+                          <span className="font-mono text-[11px] text-slate-400">
+                            {matching.length}
+                          </span>
+                        </div>
+                        <h3 className="text-xs font-medium text-slate-800 leading-snug">
+                          {dq.fullQuestion}
+                        </h3>
+                        <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
+                          <strong className="text-slate-800">Answer:</strong> {dq.synthesizedAnswer}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* TAB 2: 9 DISCOVERY QUESTIONS (CLEAN ACCORDION CARDS) */}
+        {/* TAB 2: SIMPLE, SCANNABLE OPPORTUNITIES + AI EVIDENCE LOG */}
         {activeTab === "questions" && (
-          <div className="space-y-4">
-            <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center justify-between">
-              <div>
-                <h2 className="font-display font-bold text-base text-slate-900">
-                  Part 1: 9 Discovery Questions Answered
-                </h2>
-                <p className="text-xs text-slate-500">
-                  Short summary per question. Click &ldquo;Read quotes&rdquo; on any card to expand supporting evidence.
-                </p>
+          <div className="space-y-5">
+            {/* 1. Simple Ranked Opportunities List (Clean rows with Read More) */}
+            <div className="bg-white border border-slate-200 rounded-xl divide-y divide-slate-100">
+              <div className="px-5 py-4 flex items-center justify-between">
+                <div>
+                  <h2 className="font-display font-bold text-sm text-slate-900">
+                    Ranked Product Opportunities (12-Month SIP Continuation)
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Click &ldquo;Read more&rdquo; on any opportunity to view the problem, intervention, and validation plan.
+                  </p>
+                </div>
+                <span className="text-xs font-medium text-[#00B386]">
+                  No Fund Advice • No Fear/FOMO
+                </span>
               </div>
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-[#00B386]">
-                9 / 9 Complete
-              </span>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-              {DISCOVERY_QUESTIONS.map((dq) => {
-                const matching = items.filter(
-                  (i) => i.pmOverrideStatus !== "rejected" && i.aiDiscoveryQuestions.includes(dq.id)
-                );
-                const topThemes = Array.from(
-                  new Set(matching.map((m) => m.pmOverrideTheme || m.aiTheme))
-                ).slice(0, 2);
-                const isExpanded = !!expandedQuestions[dq.id];
-
+              {OPPORTUNITY_AREAS.map((opp, index) => {
+                const isExpanded = !!expandedOpps[opp.id];
                 return (
-                  <div
-                    key={dq.id}
-                    className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-between"
-                  >
-                    <div>
-                      <div className="flex items-center justify-between gap-2 mb-1.5">
-                        <span className="text-xs font-bold text-[#00B386]">{dq.shortLabel}</span>
-                        <span className="text-xs font-mono text-slate-500">
-                          {matching.length} quotes
+                  <div key={opp.id} className="px-5 py-4 space-y-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-xs font-bold px-2 py-0.5 rounded bg-[#00B386] text-white">
+                          #{index + 1}
                         </span>
+                        <h3 className="font-display font-bold text-sm text-slate-900">
+                          {opp.title}
+                        </h3>
                       </div>
 
-                      <h3 className="font-display font-semibold text-sm text-slate-900">
-                        {dq.fullQuestion}
-                      </h3>
-
-                      <div className="flex flex-wrap gap-1.5 mt-2.5">
-                        {topThemes.map((th) => (
-                          <span
-                            key={th}
-                            className="text-[11px] font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-700"
-                          >
-                            {th}
-                          </span>
-                        ))}
+                      <div className="flex items-center gap-3 text-xs">
+                        <span className="text-slate-500">
+                          Impact <strong className="text-slate-900">{opp.impactScore}/10</strong>
+                        </span>
+                        <span className="text-slate-500">
+                          Confidence <strong className="text-slate-900">{opp.confidenceScore}/10</strong>
+                        </span>
+                        <button
+                          onClick={() => toggleOppExpand(opp.id)}
+                          className="text-[#00B386] font-semibold hover:underline ml-2"
+                        >
+                          {isExpanded ? "Show less" : "Read more"}
+                        </button>
                       </div>
+                    </div>
 
-                      {/* Key Insight Bullet */}
-                      {matching[0] && (
-                        <p className="text-xs text-slate-600 mt-2.5 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                          <strong className="text-slate-800">Key finding:</strong> {matching[0].aiSummary}
-                        </p>
-                      )}
+                    <p className="text-xs text-slate-600">
+                      {opp.problemStatement}
+                    </p>
 
-                      {/* Expandable Quotes */}
-                      {isExpanded && (
-                        <div className="mt-3 space-y-2 border-t border-slate-100 pt-2.5">
-                          {matching.slice(0, 3).map((m) => (
-                            <div key={m.id} className="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg">
-                              <span className="font-mono text-[10px] text-slate-400 block mb-0.5">
-                                {m.id} • {m.source} ({m.monthsActiveEstimate})
-                              </span>
-                              &ldquo;{m.text}&rdquo;
-                            </div>
-                          ))}
+                    {isExpanded && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 text-xs">
+                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 space-y-1.5">
+                          <div>
+                            <strong className="text-slate-900">Proposed Intervention:</strong>{" "}
+                            <span className="text-slate-600">{opp.productHypothesis}</span>
+                          </div>
+                          <div>
+                            <strong className="text-slate-900">Target User:</strong>{" "}
+                            <span className="text-slate-600">{opp.targetUser}</span>
+                          </div>
                         </div>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-100 text-xs">
-                      <button
-                        onClick={() => toggleQuestionExpand(dq.id)}
-                        className="text-[#00B386] font-semibold hover:underline inline-flex items-center gap-1"
-                      >
-                        {isExpanded ? (
-                          <>
-                            Hide quotes <ChevronUp className="w-3.5 h-3.5" />
-                          </>
-                        ) : (
-                          <>
-                            Read {Math.min(matching.length, 3)} quotes <ChevronDown className="w-3.5 h-3.5" />
-                          </>
-                        )}
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setSelectedQuestion(dq.id);
-                          setActiveTab("explorer");
-                        }}
-                        className="text-slate-500 hover:text-slate-800"
-                      >
-                        Filter in feed →
-                      </button>
-                    </div>
+                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 space-y-1.5">
+                          <div>
+                            <strong className="text-slate-900">Expected Outcome:</strong>{" "}
+                            <span className="text-slate-600">{opp.expectedOutcome}</span>
+                          </div>
+                          <div>
+                            <strong className="text-slate-900">Validation Plan:</strong>{" "}
+                            <span className="text-slate-600">{opp.validationPlan}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
             </div>
-          </div>
-        )}
 
-        {/* TAB 3: METRIC DECOMPOSITION & OPPORTUNITIES (PART 2) */}
-        {activeTab === "metric_tree" && (
-          <div className="space-y-5">
-            {/* Clean 5-Gate Timeline */}
-            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <h2 className="font-display font-bold text-base text-slate-900">
-                    Part 2: 12-Month SIP Continuation Metric Breakdown
-                  </h2>
-                  <p className="text-xs text-slate-500">
-                    A user reaches Month 12 only by surviving these 5 chronological lifecycle gates:
-                  </p>
-                </div>
-                <span className="text-xs font-mono bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md">
-                  Active SIP = ≥1 instalment in last 30d
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                {ALL_STAGES.map((stageKey) => {
-                  const stageInfo = JOURNEY_STAGE_LABELS[stageKey];
-                  const count = items.filter(
-                    (i) => i.pmOverrideStatus !== "rejected" && (i.pmOverrideStage || i.aiStage) === stageKey
-                  ).length;
-                  return (
-                    <div
-                      key={stageKey}
-                      onClick={() => {
-                        setSelectedStage(stageKey);
-                        setActiveTab("explorer");
-                      }}
-                      className="bg-slate-50 hover:bg-emerald-50/40 border border-slate-200 hover:border-[#00B386] rounded-xl p-3.5 cursor-pointer transition"
-                    >
-                      <div className="flex items-center justify-between text-xs mb-1">
-                        <span className="font-bold text-[#00B386]">{stageInfo.months}</span>
-                        <span className="font-mono text-slate-500">{count} items</span>
-                      </div>
-                      <div className="font-display font-semibold text-xs text-slate-900">
-                        {stageInfo.label}
-                      </div>
-                      <p className="text-[11px] text-slate-500 mt-1 line-clamp-2">
-                        {stageInfo.description}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Ranked Opportunities with Read More */}
-            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-3.5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="font-display font-bold text-base text-slate-900">
-                    Ranked Product Opportunities
-                  </h2>
-                  <p className="text-xs text-slate-500">
-                    All 4 opportunities pass guardrails: No Fund/Stock Advice • No Fear/FOMO/Urgency
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                {OPPORTUNITY_AREAS.map((opp, index) => {
-                  const isExpanded = !!expandedOpps[opp.id];
-                  return (
-                    <div
-                      key={opp.id}
-                      className="border border-slate-200 rounded-xl p-4 bg-white hover:border-slate-300 transition"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold px-2.5 py-0.5 rounded bg-[#00B386] text-white">
-                            #{index + 1}
-                          </span>
-                          <h3 className="font-display font-bold text-sm text-slate-900">
-                            {opp.title}
-                          </h3>
-                        </div>
-
-                        <div className="flex items-center gap-2 text-xs font-mono">
-                          <span className="px-2 py-0.5 rounded bg-emerald-50 text-[#00B386] font-semibold">
-                            Impact: {opp.impactScore}/10
-                          </span>
-                          <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700">
-                            Confidence: {opp.confidenceScore}/10
-                          </span>
-                          <span className="px-2 py-0.5 rounded bg-amber-50 text-amber-800">
-                            Effort: {opp.effortScore}/10
-                          </span>
-                        </div>
-                      </div>
-
-                      <p className="text-xs text-slate-600 mt-2">
-                        <strong className="text-slate-800">Target Lever:</strong> {opp.metricLever}
-                      </p>
-
-                      {isExpanded && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3 pt-3 border-t border-slate-100 text-xs">
-                          <div className="bg-slate-50 p-3 rounded-lg">
-                            <div className="font-semibold text-slate-800 mb-1">User Problem</div>
-                            <p className="text-slate-600 leading-relaxed">{opp.problemStatement}</p>
-                          </div>
-                          <div className="bg-emerald-50/50 p-3 rounded-lg border border-emerald-100">
-                            <div className="font-semibold text-emerald-950 mb-1">Product Hypothesis</div>
-                            <p className="text-slate-700 leading-relaxed">{opp.productHypothesis}</p>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-slate-100 text-xs">
-                        <span className="text-emerald-700 font-medium">
-                          ✓ No Fund Advice • ✓ No Fear/FOMO
-                        </span>
-                        <button
-                          onClick={() => toggleOppExpand(opp.id)}
-                          className="text-[#00B386] font-semibold hover:underline inline-flex items-center gap-1"
-                        >
-                          {isExpanded ? (
-                            <>
-                              Hide details <ChevronUp className="w-3.5 h-3.5" />
-                            </>
-                          ) : (
-                            <>
-                              Read problem & hypothesis <ChevronDown className="w-3.5 h-3.5" />
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 4: GOLDEN SET & HUMAN AUDIT */}
-        {activeTab === "golden_set" && (
-          <div className="space-y-4">
-            {/* 3 Highlighted PM Overrides at the Top so Evaluator Sees Them Immediately */}
-            <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-3">
+            {/* 2. Simple AI Evidence Log Summary (3 Clean Cards + Expandable Table) */}
+            <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="font-display font-bold text-sm text-slate-900">
-                    3 Places Where PM Corrected / Rejected AI Output
+                    AI Evidence Log Summary
                   </h2>
-                  <p className="text-xs text-slate-500">
-                    Required deliverable: Human-in-the-loop judgment where the AI classifier failed.
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Sources analysed, 20-item hand-labelled Golden Set, and 3 PM overrides.
                   </p>
                 </div>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
-                  {goldenMetrics.overrides.length} Overrides Logged
-                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={copyEvidenceLog}
+                    className="px-3 py-1.5 rounded-md text-xs font-medium bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 transition"
+                  >
+                    {copiedLog ? "Copied!" : "Copy Log"}
+                  </button>
+                  <button
+                    onClick={downloadEvidenceLogMarkdown}
+                    className="px-3 py-1.5 rounded-md text-xs font-semibold bg-[#00B386] text-white hover:bg-[#009973] transition"
+                  >
+                    Download .MD
+                  </button>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {/* 3 Simple Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3.5">
+                  <div className="text-slate-500">1. Sources &amp; Volume</div>
+                  <div className="text-base font-bold text-slate-900 mt-0.5">
+                    {validItemsCount} Valid SIP Items
+                  </div>
+                  <div className="text-[11px] text-slate-500 mt-0.5">
+                    Across {sourceVolumes.length} channels (+1 F&amp;O noise excluded)
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3.5">
+                  <div className="text-slate-500">2. Golden Set Agreement</div>
+                  <div className="text-base font-bold text-[#00B386] mt-0.5">
+                    {goldenMetrics.themeAgreementPct}% ({goldenMetrics.themeMatches}/{goldenMetrics.total} Matched)
+                  </div>
+                  <div className="text-[11px] text-slate-500 mt-0.5">
+                    20 hand-labelled items tested against AI
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3.5">
+                  <div className="text-slate-500">3. Human Overrides</div>
+                  <div className="text-base font-bold text-slate-900 mt-0.5">
+                    3 AI Outputs Corrected / Rejected
+                  </div>
+                  <div className="text-[11px] text-slate-500 mt-0.5">
+                    EV-003, EV-011 corrected • EV-015 rejected
+                  </div>
+                </div>
+              </div>
+
+              {/* 3 Short Override Rows */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
                 {goldenMetrics.overrides.map((o) => (
-                  <div
-                    key={o.id}
-                    className="bg-amber-50/50 border border-amber-200 rounded-lg p-3 text-xs space-y-1.5"
-                  >
-                    <div className="flex items-center justify-between font-mono text-[11px]">
-                      <span className="font-bold text-slate-800">
-                        {o.id} ({o.source})
-                      </span>
-                      <span className="uppercase px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 font-semibold">
-                        {o.pmOverrideStatus}
+                  <div key={o.id} className="border border-slate-200 rounded-lg p-3 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono font-bold text-slate-900">{o.id}</span>
+                      <span className="text-[11px] font-semibold text-[#00B386] uppercase">
+                        PM {o.pmOverrideStatus}
                       </span>
                     </div>
-                    <div className="text-slate-500">
-                      AI said: <span className="line-through">{o.aiTheme}</span>
+                    <div className="text-slate-800 font-medium">
+                      {o.pmOverrideStatus === "rejected" ? "Excluded F&O Noise" : o.pmOverrideTheme}
                     </div>
-                    <div className="font-semibold text-slate-900">
-                      PM set: {o.pmOverrideStatus === "rejected" ? "Excluded (F&O Noise)" : o.pmOverrideTheme}
-                    </div>
-                    <p className="text-slate-600 leading-snug">{o.pmOverrideReason}</p>
+                    <p className="text-[11px] text-slate-500 line-clamp-2">{o.pmOverrideReason}</p>
                   </div>
                 ))}
               </div>
-            </div>
 
-            {/* Clean 20-Row Golden Set Table */}
-            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-              <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
-                <h3 className="font-display font-bold text-sm text-slate-900">
-                  20-Item Hand-Labelled Golden Set ({goldenMetrics.themeAgreementPct}% Agreement)
-                </h3>
-                <span className="text-xs text-slate-500">
-                  {goldenMetrics.themeMatches} of {goldenMetrics.total} matched hand labels
-                </span>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-medium">
-                      <th className="py-2.5 px-4">ID</th>
-                      <th className="py-2.5 px-4">Source</th>
-                      <th className="py-2.5 px-4">Hand Label (PM Truth)</th>
-                      <th className="py-2.5 px-4">AI Prediction</th>
-                      <th className="py-2.5 px-4">Match</th>
-                      <th className="py-2.5 px-4 text-right">Edit</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {items
-                      .filter((i) => i.isGoldenSet)
-                      .map((g) => {
-                        const agreed =
-                          g.aiTheme === g.humanGoldenTheme && g.pmOverrideStatus !== "rejected";
-                        return (
-                          <tr key={g.id} className="hover:bg-slate-50/80">
-                            <td className="py-2.5 px-4 font-mono font-semibold text-slate-700">{g.id}</td>
-                            <td className="py-2.5 px-4 text-slate-600">{g.source}</td>
-                            <td className="py-2.5 px-4 font-medium text-slate-900">
-                              {g.pmOverrideTheme || g.humanGoldenTheme}
-                            </td>
-                            <td className="py-2.5 px-4 text-slate-600">{g.aiTheme}</td>
-                            <td className="py-2.5 px-4">
-                              {g.pmOverrideStatus === "rejected" ? (
-                                <span className="text-rose-600 font-semibold">✕ Rejected</span>
-                              ) : agreed ? (
-                                <span className="text-[#00B386] font-semibold">✓ Match</span>
-                              ) : (
-                                <span className="text-amber-600 font-semibold">⚠ Corrected</span>
-                              )}
-                            </td>
-                            <td className="py-2.5 px-4 text-right">
-                              <button
-                                onClick={() => openOverrideModal(g)}
-                                className="text-slate-500 hover:text-slate-900 underline"
-                              >
-                                Edit
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 5: AI EVIDENCE LOG DELIVERABLE */}
-        {activeTab === "evidence_log" && (
-          <div className="space-y-4">
-            <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <h2 className="font-display font-bold text-base text-slate-900">
-                  AI Evidence Log (Ready to Paste into Google Docs / Notion)
-                </h2>
-                <p className="text-xs text-slate-500">
-                  Contains: 1) Sources & Volume, 2) 20-Item Golden Set Accuracy, and 3) 3 PM Corrections/Rejections.
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
+              {/* Single Toggle for 20-Item Golden Set Table */}
+              <div className="pt-1">
                 <button
-                  onClick={copyEvidenceLog}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 transition"
+                  onClick={() => setShowFullGoldenTable((prev) => !prev)}
+                  className="text-xs text-[#00B386] font-semibold hover:underline"
                 >
-                  {copiedLog ? <Check className="w-3.5 h-3.5 text-[#00B386]" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedLog ? "Copied!" : "Copy Document"}</span>
+                  {showFullGoldenTable ? "Hide 20-item Golden Set table ▲" : "View 20-item Golden Set table ▼"}
                 </button>
-                <button
-                  onClick={downloadEvidenceLogMarkdown}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#00B386] text-white hover:bg-[#009973] transition"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Download .MD</span>
-                </button>
-              </div>
-            </div>
 
-            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-              <pre className="text-xs font-mono text-slate-700 whitespace-pre-wrap leading-relaxed overflow-x-auto">
-                {generatedEvidenceLogMarkdown}
-              </pre>
+                {showFullGoldenTable && (
+                  <div className="overflow-x-auto border border-slate-200 rounded-lg mt-2.5">
+                    <table className="w-full text-left border-collapse text-xs">
+                      <thead>
+                        <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-medium">
+                          <th className="py-2 px-3">ID</th>
+                          <th className="py-2 px-3">Source</th>
+                          <th className="py-2 px-3">Hand Label (PM)</th>
+                          <th className="py-2 px-3">AI Output</th>
+                          <th className="py-2 px-3">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {items
+                          .filter((i) => i.isGoldenSet)
+                          .map((g) => {
+                            const agreed =
+                              g.aiTheme === g.humanGoldenTheme && g.pmOverrideStatus !== "rejected";
+                            const displayTruth =
+                              g.pmOverrideStatus === "rejected"
+                                ? "Out-of-Scope Noise (F&O)"
+                                : g.pmOverrideTheme || g.humanGoldenTheme;
+                            return (
+                              <tr key={g.id} className="hover:bg-slate-50">
+                                <td className="py-2 px-3 font-mono text-slate-700">{g.id}</td>
+                                <td className="py-2 px-3 text-slate-600">{g.source}</td>
+                                <td className="py-2 px-3 font-medium text-slate-900">{displayTruth}</td>
+                                <td className="py-2 px-3 text-slate-500">{g.aiTheme}</td>
+                                <td className="py-2 px-3 font-semibold">
+                                  {agreed ? (
+                                    <span className="text-[#00B386]">Agreed</span>
+                                  ) : (
+                                    <span className="text-amber-700">Overridden</span>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
