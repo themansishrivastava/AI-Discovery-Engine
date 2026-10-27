@@ -865,16 +865,32 @@ ${overrideLines}
 
               {OPPORTUNITY_AREAS.map((opp, index) => {
                 const isExpanded = !!expandedOpps[opp.id];
+                const themeEvidence = items.filter(
+                  (i) =>
+                    i.pmOverrideStatus !== "rejected" &&
+                    (i.pmOverrideTheme || i.aiTheme) === opp.linkedTheme
+                );
+                const sampleQuote = themeEvidence[0];
+
                 return (
-                  <div key={opp.id} className="px-5 py-4 space-y-2">
+                  <div key={opp.id} className="px-5 py-4 space-y-2.5">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2.5">
+                      <div className="flex items-center gap-2.5 flex-wrap">
                         <span className="text-xs font-bold px-2 py-0.5 rounded bg-[#00B386] text-white">
                           #{index + 1}
                         </span>
                         <h3 className="font-display font-bold text-sm text-slate-900">
                           {opp.title}
                         </h3>
+                        <button
+                          onClick={() => {
+                            setSelectedTheme(opp.linkedTheme);
+                            setActiveTab("explorer");
+                          }}
+                          className="text-[11px] font-medium px-2 py-0.5 rounded bg-emerald-50 text-[#00B386] border border-emerald-200 hover:bg-emerald-100 transition"
+                        >
+                          {themeEvidence.length} Evidence Reviews →
+                        </button>
                       </div>
 
                       <div className="flex items-center gap-3 text-xs">
@@ -897,26 +913,75 @@ ${overrideLines}
                       {opp.problemStatement}
                     </p>
 
+                    {/* Visible Evidence Proof Strip */}
+                    <div className="bg-slate-50 border border-slate-200/80 rounded-lg px-3 py-2 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="text-slate-600 truncate">
+                        <strong className="text-slate-800">Evidence ({opp.evidenceSummary.split(" ")[0]} items):</strong>{" "}
+                        {sampleQuote ? (
+                          <span>
+                            &ldquo;{sampleQuote.text.slice(0, 115)}...&rdquo;{" "}
+                            <span className="font-mono text-[11px] text-slate-400">
+                              ({sampleQuote.id} • {sampleQuote.source})
+                            </span>
+                          </span>
+                        ) : (
+                          <span>{opp.evidenceSummary}</span>
+                        )}
+                      </div>
+                      <span className="font-mono text-[11px] text-slate-400 shrink-0">
+                        IDs: {opp.highQualityRatio}
+                      </span>
+                    </div>
+
                     {isExpanded && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 text-xs">
-                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 space-y-1.5">
-                          <div>
-                            <strong className="text-slate-900">Proposed Intervention:</strong>{" "}
-                            <span className="text-slate-600">{opp.productHypothesis}</span>
+                      <div className="space-y-3 pt-2 text-xs">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 space-y-1.5">
+                            <div>
+                              <strong className="text-slate-900">Proposed Intervention:</strong>{" "}
+                              <span className="text-slate-600">{opp.productHypothesis}</span>
+                            </div>
+                            <div>
+                              <strong className="text-slate-900">Target User:</strong>{" "}
+                              <span className="text-slate-600">{opp.targetUser}</span>
+                            </div>
                           </div>
-                          <div>
-                            <strong className="text-slate-900">Target User:</strong>{" "}
-                            <span className="text-slate-600">{opp.targetUser}</span>
+                          <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 space-y-1.5">
+                            <div>
+                              <strong className="text-slate-900">Expected Outcome:</strong>{" "}
+                              <span className="text-slate-600">{opp.expectedOutcome}</span>
+                            </div>
+                            <div>
+                              <strong className="text-slate-900">Validation Plan:</strong>{" "}
+                              <span className="text-slate-600">{opp.validationPlan}</span>
+                            </div>
                           </div>
                         </div>
-                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 space-y-1.5">
-                          <div>
-                            <strong className="text-slate-900">Expected Outcome:</strong>{" "}
-                            <span className="text-slate-600">{opp.expectedOutcome}</span>
+
+                        {/* Supporting Quotes List When Expanded */}
+                        <div className="bg-white border border-slate-200 rounded-lg p-3 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <strong className="text-slate-900">
+                              Supporting User Evidence ({themeEvidence.length} items in corpus)
+                            </strong>
+                            <button
+                              onClick={() => {
+                                setSelectedTheme(opp.linkedTheme);
+                                setActiveTab("explorer");
+                              }}
+                              className="text-[#00B386] font-semibold hover:underline"
+                            >
+                              View all {themeEvidence.length} in Evidence Feed →
+                            </button>
                           </div>
-                          <div>
-                            <strong className="text-slate-900">Validation Plan:</strong>{" "}
-                            <span className="text-slate-600">{opp.validationPlan}</span>
+                          <div className="space-y-1.5">
+                            {themeEvidence.slice(0, 3).map((ev) => (
+                              <div key={ev.id} className="text-[11px] text-slate-600 bg-slate-50 px-2.5 py-1.5 rounded border border-slate-100">
+                                <span className="font-mono font-semibold text-slate-700">{ev.id}</span>{" "}
+                                <span className="text-slate-400">({ev.source}):</span>{" "}
+                                &ldquo;{ev.text.slice(0, 160)}...&rdquo;
+                              </div>
+                            ))}
                           </div>
                         </div>
                       </div>

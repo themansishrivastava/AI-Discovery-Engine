@@ -978,6 +978,42 @@ export const SEED_EVIDENCE: EvidenceItem[] = [
     aiSummary: "Investors struggle to judge whether their SIP is 'on-track' or 'out-of-form' and want simple health indicators to decide whether to continue.",
     isGoldenSet: false,
   },
+  {
+    id: "EV-041",
+    source: "Groww Official Help Center",
+    platform: "Groww",
+    rating: null,
+    date: "2026-10-15",
+    text: "Why was my SIP cancelled? Your SIP might have been cancelled for two reasons: 1. Cancellation Request: You requested to cancel it. 2. Automatic Cancellation: The system automatically cancelled your SIP because the last three consecutive installments weren't paid (missed payments or rejected by payment gateway/AMC). (https://groww.in/help/mutual-funds/order/why-was-my-order-cancelled--68)",
+    segment: "Groww Help Documentation",
+    monthsActiveEstimate: "Month 1–12",
+    aiTheme: "Autopay & Mandate Friction",
+    aiStage: "habit_decay_month_6_12",
+    aiChurnType: "involuntary_payment_kyc_fail",
+    aiDiscoveryQuestions: ["Q3_why_pause_reduce_stop", "Q7_continue_vs_quiet_dropoff"],
+    aiEvidenceQuality: "High",
+    aiConfidence: 0.99,
+    aiSummary: "Groww's official help center confirms SIPs only end two ways: voluntary user cancellation OR automatic cancellation after 3 consecutive unpaid instalments.",
+    isGoldenSet: false,
+  },
+  {
+    id: "EV-042",
+    source: "Myfolios Investor Behaviour Blog",
+    platform: "India MF Industry",
+    rating: null,
+    date: "2026-10-16",
+    text: "Why people stop their SIP: 1) The market fell — SIP shows a loss, though falling markets buy more units at lower prices. 2) It felt too slow — in the first year a SIP barely seems to move and gain looks tiny. 3) Money got tight — medical bill or job change; pause instead of cancelling because a paused SIP restarts by itself while a cancelled one stays cancelled. 4) A friend's fund did better — chasing last year's winner. (https://www.myfolios.in/blog/why-people-stop-their-sip)",
+    segment: "First-Year SIP Behavioural Synthesis",
+    monthsActiveEstimate: "Month 1–12",
+    aiTheme: "Early Returns Disappointment (Month 1–4)",
+    aiStage: "month_1_to_3_expectations",
+    aiChurnType: "voluntary_pause_stop",
+    aiDiscoveryQuestions: ["Q1_why_start_expectations", "Q2_behaviour_change_after_start", "Q3_why_pause_reduce_stop", "Q7_continue_vs_quiet_dropoff"],
+    aiEvidenceQuality: "High",
+    aiConfidence: 0.98,
+    aiSummary: "Captures the 4 human reasons beginners stop SIPs: 1) Market fell, 2) Felt too slow in Year 1, 3) Money got tight (cancelled instead of paused), 4) Friend's fund did better.",
+    isGoldenSet: false,
+  },
 ];
 
 export interface OpportunityArea {
@@ -1009,200 +1045,200 @@ export interface OpportunityArea {
 export const OPPORTUNITY_AREAS: OpportunityArea[] = [
   {
     id: "OPP-1",
-    title: "Easy Skip, Pause & Amount Edit (Without Cancelling SIP)",
+    title: "Reason 1: \"Money Got Tight This Month\" → Pause or Step-Down to ₹500 Instead of Cancelling",
     targetGate: "Driver 4: Cash-Flow & Skip Friction",
     linkedTheme: "Rigid Cash-Flow / No Flexible Skip",
-    metricLever: "% of cash-strapped users who step down or pause instead of cancelling mandate",
+    metricLever: "% of cash-strapped users who pause (with auto-restart) or step down to ₹500 instead of cancelling",
     evidenceCount: 18,
-    highQualityRatio: "EV-003, EV-008, EV-014, EV-026, EV-028, GPLAY-003",
+    highQualityRatio: "EV-003, EV-008, EV-014, EV-026, EV-028, EV-031, EV-034, EV-042",
     impactScore: 9.5,
     confidenceScore: 9.2,
-    effortScore: 4.0,
+    effortScore: 3.5,
     problemStatement:
-      "When salary is delayed or medical/festival expenses hit, Groww's 2–3 day skip lock-in, inability to edit SIP amount directly without cancelling, and ₹150–₹750 bank bounce fees force users to cancel their SIP permanently.",
+      "Medical bill, late salary, or festival expense: users cancel their SIP because they cannot easily edit the amount (e.g. ₹2,000 → ₹500) without cancelling, face 2-day skip cutoffs, or don't realize a paused SIP restarts automatically while a cancelled SIP stays dead.",
     evidenceSummary:
-      "18 direct items across Groww Play Store (knee-surgery skip failure, ₹300→₹600 edit block), Reddit, Quora, and Moneycontrol.",
+      "18 items: Groww Play Store ('tried to skip my SIP after knee surgery, 2-day cutoff failed', 'support says to change ₹300 to ₹600 you must cancel and create a new SIP'), Quora (₹590 bank NACH bounce fee), and Myfolios.",
     targetUser:
-      "First-time salaried investors with variable payout dates (1st–10th) and students/young earners facing temporary cash crunches.",
+      "First-time salaried & student SIP investors facing a temporary 1–2 month cash crunch.",
     productHypothesis:
-      "Allow direct in-place SIP amount edits (e.g. step down to ₹500 for 1–2 months) + a 1-tap 'Pause with Auto-Resume Date' + a 4-day pre-debit balance reminder so users avoid bank bounce charges.",
+      "When a user taps 'Cancel SIP' and selects 'Money is tight', offer 1-tap 'Pause for 1–3 Months (Auto-Restarts on [Date])' or 'Lower Next Instalment to ₹500' + a 4-day pre-debit reminder.",
     expectedOutcome:
-      "Reduces voluntary SIP cancellations during tight cash-flow months.",
+      "Converts permanent SIP cancellations into temporary 1–2 month pauses or ₹500 step-downs that automatically resume.",
     effortDetail:
-      "Medium (4/10) — Pre-debit alert + BSE Star MF pause/modify wrapper.",
+      "Low–Medium (3.5/10) — 'Cancel SIP' intercept option + BSE Star MF pause/step-down flow.",
     risksAndGuardrails:
-      "Only show on user-initiated pause or low-balance alert; zero FOMO or penalty language.",
+      "Only shown when the user initiates Cancel/Pause; zero penalty or FOMO language.",
     validationPlan:
-      "A/B test on the 'Cancel SIP' screen: measure % choosing 'Pause 1–2M' or 'Reduce to ₹500' vs full cancellation, and track Month+3 active SIP rate.",
+      "Measure % of users on the 'Cancel SIP' screen who pick 'Pause with Auto-Restart' or 'Lower to ₹500' and track Month+3 active SIP rate.",
     guardrailCheck: {
       noFundAdvice: true,
       noFearFomoUrgency: true,
-      complianceNote: "Purely operational cash-flow flexibility on the user's existing chosen SIP.",
+      complianceNote: "Helps users pause or step down their own chosen SIP during tight months.",
     },
   },
   {
     id: "OPP-2",
-    title: "1-Tap UPI Retry When Autopay Fails (Stop 3-Strike Auto-Cancel)",
-    targetGate: "Driver 1 & 4: Autopay & Missed Instalments",
-    linkedTheme: "Autopay & Mandate Friction",
-    metricLever: "% of failed monthly auto-debits recovered within 48 hours",
-    evidenceCount: 17,
-    highQualityRatio: "EV-007, EV-022, EV-029, EV-032, GPLAY-018",
-    impactScore: 9.2,
-    confidenceScore: 9.1,
+    title: "Reason 2: \"The Market Fell & My SIP Is in Loss\" → Show Extra Units Bought at Lower NAV",
+    targetGate: "Driver 3: First Market Correction Panic",
+    linkedTheme: "Market Dip Panic & Loss Aversion",
+    metricLever: "% of Month 1–6 users staying active through their first negative market dip",
+    evidenceCount: 16,
+    highQualityRatio: "EV-005, EV-006, EV-020, EV-027, EV-042",
+    impactScore: 9.1,
+    confidenceScore: 9.0,
     effortScore: 3.0,
     problemStatement:
-      "When a monthly SIP auto-debit fails due to a temporary low balance or expired UPI prompt, Groww does not auto-retry—and after 3 consecutive missed debits, SEBI rules permanently cancel the SIP.",
+      "When the market drops and the portfolio turns red (or shows -18% annualised XIRR on a tiny ₹180 dip), beginners feel they are losing money and stop—not realizing a falling market is when each SIP instalment buys more mutual fund units at a cheaper price.",
     evidenceSummary:
-      "17 items across Groww Play Store ('auto payment fails in mutual fund sip and there is no retry done by the app'), TradingQ&A, and Moneycontrol.",
+      "16 items: Hindi YouTube ('portfolio -4.8% dikha raha hai, kya SIP pause kar du?'), Play Store ('if the app showed you accumulated +14.2 extra units because NAV was lower, beginners wouldn't panic'), Quora, and Myfolios.",
     targetUser:
-      "Passive SIP investors whose bank debit or UPI Autopay notification fails on the due date.",
+      "First-time SIP investors in Months 1–6 seeing red returns during a market dip.",
     productHypothesis:
-      "Send a clear 'SIP Debit Missed — Pay This Month's Instalment via UPI in 1 Tap' notification valid for 72 hours, plus an automatic T+2 backup retry option.",
+      "When a user selects 'Market fell / SIP is in loss' (or views a red <6M portfolio), show a calm 'Rupee-Cost Averaging Maths Card' proving how this month's instalment bought +X extra units at a lower NAV.",
     expectedOutcome:
-      "Recovers missed monthly instalments and prevents silent 3-strike SEBI SIP cancellations.",
+      "Reduces panic SIP cancellations during market downturns.",
     effortDetail:
-      "Low–Medium (3/10) — Failed-debit webhook trigger + 1-tap UPI intent linked to the active SIP folio.",
+      "Low (3/10) — Unit-accumulation breakdown card on the portfolio & Cancel SIP screens.",
     risksAndGuardrails:
-      "Factual missed-payment notification only; no urgency countdowns or fear nudges.",
+      "Uses factual unit-purchase math from the user's own folio; never predicts market recovery or uses FOMO.",
     validationPlan:
-      "Measure 72-hour instalment recovery rate on failed auto-debits and reduction in 3-consecutive-miss SIP terminations.",
+      "Compare SIP stop rate during market dip weeks between users shown the 'Extra Units Bought' breakdown vs standard red % XIRR.",
     guardrailCheck: {
       noFundAdvice: true,
       noFearFomoUrgency: true,
-      complianceNote: "Helps users complete their own scheduled SIP payment after a failed bank debit.",
+      complianceNote: "Plain-words explanation of unit accumulation using the user's own SIP numbers.",
     },
   },
   {
     id: "OPP-3",
-    title: "Live SIP Money Tracker & ₹1L Mandate Limit Explainer",
-    targetGate: "Driver 1: Setup, Mandate & Allotment",
-    linkedTheme: "Allotment & T+2 NAV Trust Gap",
-    metricLever: "% of new SIP starters completing Instalment #1 & #2 with active Autopay",
-    evidenceCount: 26,
-    highQualityRatio: "EV-001, EV-013, EV-016, EV-025, GPLAY-036",
-    impactScore: 9.0,
-    confidenceScore: 9.0,
+    title: "Reason 3: \"It Felt Too Slow / Barely Moving\" → Year-1 Habit Milestone & Goal Tagging",
+    targetGate: "Driver 2 & 5: Early Returns Reality Check",
+    linkedTheme: "Early Returns Disappointment (Month 1–4)",
+    metricLever: "% of Month 1–6 users who tag a goal and stay past the 'flat returns' boredom phase",
+    evidenceCount: 22,
+    highQualityRatio: "EV-002, EV-010, EV-012, EV-018, EV-037, EV-042",
+    impactScore: 8.8,
+    confidenceScore: 8.8,
     effortScore: 3.0,
     problemStatement:
-      "Beginners panic during the 2–3 business day gap between bank debit and unit allotment ('money deducted, 0 units shown'), and many decline Autopay because the default ₹15,000 / ₹1,00,000 bank mandate limit looks like an overcharge.",
+      "In the first year, a ₹1,000–₹3,000 SIP barely seems to move in rupee terms (e.g. ₹140 gain in 4 months). Boredom sets in, parents compare it to a 7% FD, and a SIP started 'just to save' with no named goal is easy to abandon.",
     evidenceSummary:
-      "26 items across Groww Play Store ('money debited but didn't allot'), Quora ('started ₹1,000 SIP but e-mandate says ₹1 Lakh'), and ConsumerComplaints.",
+      "22 items: Reddit ('4 months in, total gain is ₹140, father says FD gives 7.25%'), Groww Play Store ('Against all MFs should be tagging/purpose/goal like Trip, Child Education'), and Myfolios.",
     targetUser:
-      "First-time mutual fund investors in Month 0–1 setting up Autopay and tracking their first instalment.",
+      "First-year investors checking returns daily and feeling their SIP 'isn't working'.",
     productHypothesis:
-      "Show a live 4-step tracker ('Bank Debited → Sent to BSE → Allotting Units on [Date] → Portfolio Updated') and a plain-language note explaining that ₹15k/₹1L is a maximum bank limit, not the debit amount.",
+      "Let users name their SIP goal (Emergency, Bike, Home, Retirement) and show a 'Year-1 Habit Progress Bar' (e.g. '5/12 Monthly Instalments Completed • Total Invested & Units Collected') explaining why Year 1 is about building the unit base.",
     expectedOutcome:
-      "Increases Autopay approval rate at onboarding and stops Month-1 panic cancellations.",
+      "Higher 12-month continuation rate for goal-tagged SIPs during flat/sideways market months.",
     effortDetail:
-      "Low–Medium (3/10) — UI stepper mapped to existing order status webhooks + mandate copy update.",
+      "Low (3/10) — 1-tap Goal Tag chips + 12-month instalment streak bar.",
     risksAndGuardrails:
-      "Adjust expected allotment date automatically for weekends and market holidays.",
+      "User picks their own goal name; Groww never recommends which fund suits which goal.",
     validationPlan:
-      "Track Autopay setup completion % and reduction in 'Where is my money?' support tickets in Month 1.",
+      "Compare 6-month and 12-month retention of users who attach a Goal Tag vs untagged SIPs.",
     guardrailCheck: {
       noFundAdvice: true,
       noFearFomoUrgency: true,
-      complianceNote: "Transparent order-settlement tracking and mandate limit clarity.",
+      complianceNote: "Goal naming and factual Year-1 compounding education.",
     },
   },
   {
     id: "OPP-4",
-    title: "Show 'Units Bought' Instead of Scary Annualised % Loss in First 6 Months",
-    targetGate: "Driver 2 & 3: Early Returns & First Market Dip",
-    linkedTheme: "Early Returns Disappointment (Month 1–4)",
-    metricLever: "% of Month 1–6 users staying active through their first market dip",
-    evidenceCount: 22,
-    highQualityRatio: "EV-002, EV-005, EV-006, EV-020, EV-027",
-    impactScore: 8.8,
+    title: "Reason 4: \"A Friend's Fund Did Better\" → Pre-Switch Exit Load, Tax & Category Check",
+    targetGate: "Driver 5: External Noise & Fund Chasing",
+    linkedTheme: "External Finfluencer / Family Noise",
+    metricLever: "% of users who avoid impulsive Year-1 fund churn and exit-load/tax penalties",
+    evidenceCount: 14,
+    highQualityRatio: "EV-004, EV-011, EV-012, EV-019, EV-021, EV-042",
+    impactScore: 8.4,
     confidenceScore: 8.6,
-    effortScore: 3.5,
+    effortScore: 3.0,
     problemStatement:
-      "Beginners check the app daily and see exaggerated annualised XIRR (e.g. -18% on a ₹180 dip after 60 days) or flat gains vs FDs, causing them to pause right when lower NAVs buy more units.",
+      "A colleague, Reddit thread, or YouTube video brags that another fund gave higher returns last year. Beginners stop their SIP to chase last year's winner—getting blindsided by 1% exit load (before 12 months) and 20% STCG tax.",
     evidenceSummary:
-      "22 items across App Store ('-18% XIRR on ₹180 loss gave me a heart attack'), Hindi YouTube ('portfolio -4.8%, should I pause?'), and Reddit.",
+      "14 items: Reddit ('Just noticed 1% exit load and 20% STCG tax when I tried to withdraw my 6-month SIP! Nobody told me'), YouTube ('watch 10 videos and each says switch fund'), and Myfolios.",
     targetUser:
-      "First-time SIP investors in Months 1–6 experiencing their first sideways or red market cycle.",
+      "Peer- and finfluencer-influenced beginners tempted to stop/redeem their SIP in <12 months to chase recent winners.",
     productHypothesis:
-      "For SIPs under 6 months old, show Absolute ₹ Change + 'Total Units Accumulated' ('Instalment 4/12 • +14.2 units bought at lower NAV this month') instead of volatile annualised XIRR on the home card.",
+      "When a user selects 'Switching to another fund / returns look low vs others', show a transparent 'Cost of Stopping & Switching Early' card (displaying their exact remaining days for 0% exit load, 20% STCG impact, and why 6-month returns differ across categories).",
     expectedOutcome:
-      "Reduces panic SIP pauses during market dips in the first 6 months.",
+      "Prevents uninformed early redemptions and impulsive <12-month fund-hopping.",
     effortDetail:
-      "Low–Medium (3.5/10) — Portfolio card view toggle for <180-day cohorts using existing unit data.",
+      "Low (3/10) — Exit-load countdown & STCG tax calculator on the Stop/Redeem screen.",
     risksAndGuardrails:
-      "Keep XIRR 1-tap accessible for transparency; never promise returns or use FOMO.",
+      "Strictly factual tax/exit-load disclosure on the user's current holding; never advises whether a fund is 'good' or 'bad'.",
     validationPlan:
-      "A/B test during a market correction week comparing SIP pause rates between default XIRR view vs Units Accumulated view.",
+      "Track reduction in <12-month SIP cancellations and premature redemptions that incur 1% exit load.",
     guardrailCheck: {
       noFundAdvice: true,
       noFearFomoUrgency: true,
-      complianceNote: "Educational reframing of unit accumulation using the user's own transaction maths.",
+      complianceNote: "Transparent exit-load and STCG tax disclosure before early switch.",
     },
   },
   {
     id: "OPP-5",
-    title: "Goal Tags & Single Monthly SIP Date (Stop Portfolio Clutter)",
-    targetGate: "Driver 5: Portfolio Clutter & Silent Lapse",
-    linkedTheme: "Long-Term Habit & Goal Clarity",
-    metricLever: "% of beginners tagging a goal and keeping 1–2 clean SIP dates through Month 12",
-    evidenceCount: 15,
-    highQualityRatio: "EV-004, EV-010, EV-011, EV-018, GPLAY-037",
-    impactScore: 8.2,
-    confidenceScore: 8.5,
-    effortScore: 3.5,
+    title: "Reason 5: \"Autopay Failed 3 Times\" (Groww Help Rule) → 1-Tap UPI Retry & Mandate Alert",
+    targetGate: "Driver 1 & 4: Failed Mandate & 3-Strike Auto-Cancel",
+    linkedTheme: "Autopay & Mandate Friction",
+    metricLever: "% of failed monthly auto-debits recovered before Groww's 3-strike automatic cancellation",
+    evidenceCount: 18,
+    highQualityRatio: "EV-007, EV-022, EV-029, EV-032, EV-041",
+    impactScore: 9.2,
+    confidenceScore: 9.3,
+    effortScore: 3.0,
     problemStatement:
-      "Beginners influenced by YouTube start 5–7 tiny SIPs across different dates or treat Equity SIPs like a 6-month bank RD, leading to bank-statement fatigue, exit-load shock, and mid-year drop-off.",
+      "Per Groww's official Help Center, Groww automatically cancels a SIP if 3 consecutive instalments go unpaid—yet Play Store reviews show when a monthly auto-debit fails once, Groww does not auto-retry or give a 1-tap UPI retry.",
     evidenceSummary:
-      "15 items across Groww Play Store ('Against all MFs should be tagging/purpose/goal like Trip, Education'), Reddit ('started 7 funds, stopped 5'), and Quora.",
+      "18 items: Groww Help Center ('system automatically cancelled your SIP because the last three consecutive installments weren't paid'), Play Store ('auto payment fails in mutual fund sip and there is no retry done by the app').",
     targetUser:
-      "New investors adding multiple SIPs or investing without a clear time horizon.",
+      "Passive SIP investors whose bank debit or UPI Autopay fails due to low balance or expired mandate.",
     productHypothesis:
-      "Let users tag each SIP with a personal goal (Emergency, Education, Travel, Retirement) + group all SIPs onto a single post-salary debit date + show a 1-line exit-load/horizon note at setup.",
+      "Send a 'Missed SIP Instalment (1 of 3 before auto-cancel) — Pay via UPI in 1 Tap' alert valid for 72 hours, plus a T+2 automatic backup retry.",
     expectedOutcome:
-      "Higher 12-month retention on goal-tagged SIPs and fewer early redemptions.",
+      "Recovers missed monthly instalments and prevents involuntary 3-strike SIP cancellations.",
     effortDetail:
-      "Low–Medium (3.5/10) — Goal label metadata on SIP cards + date-sync prompt at checkout.",
+      "Low–Medium (3/10) — Failed-debit alert + 1-tap UPI payment link.",
     risksAndGuardrails:
-      "Never recommend which fund to buy for a goal; users simply label their own chosen SIP.",
+      "Factual SEBI/Groww 3-strike rule reminder; no urgency manipulation.",
     validationPlan:
-      "Compare 12-month SIP survival rate between goal-tagged, salary-synced SIPs vs untagged SIPs.",
+      "Measure 72-hour UPI recovery rate on failed debits and drop in 3-strike automatic SIP cancellations.",
     guardrailCheck: {
       noFundAdvice: true,
       noFearFomoUrgency: true,
-      complianceNote: "User-defined goal labels and operational exit-load transparency.",
+      complianceNote: "Helps users prevent unintentional 3-strike SIP termination.",
     },
   },
   {
     id: "OPP-6",
-    title: "Clean 'SIP-Only' Home Mode & Regional Language Help (No F&O Clutter)",
-    targetGate: "Driver 5: App Clutter & Segment Differences",
-    linkedTheme: "Portfolio Clutter & Fund Selection Doubt",
-    metricLever: "% of Mutual Fund-only beginners retained without F&O / Loan tab distraction",
-    evidenceCount: 14,
-    highQualityRatio: "GPLAY-002, GPLAY-011, GPLAY-040, GPLAY-150, EV-024",
-    impactScore: 7.9,
-    confidenceScore: 8.3,
-    effortScore: 3.5,
+    title: "Reason 6: \"Money Deducted, 0 Units Shown\" → Live T+2 Allotment Tracker & ₹1L Mandate Note",
+    targetGate: "Driver 1: Month-1 Onboarding Trust",
+    linkedTheme: "Allotment & T+2 NAV Trust Gap",
+    metricLever: "% of new SIP starters completing Instalment #1 & #2 without panic-cancelling",
+    evidenceCount: 26,
+    highQualityRatio: "EV-001, EV-013, EV-025, EV-036",
+    impactScore: 8.9,
+    confidenceScore: 9.0,
+    effortScore: 3.0,
     problemStatement:
-      "First-time Mutual Fund users complain that Groww opens on the F&O trading screen, places 'Activate F&O / Take a Loan' buttons near MF navigation, and lacks simple Hindi/regional explainers for Tier-2/3 families.",
+      "In Month 1, money is debited from the bank but units take T+2/T+3 days to allot ('shows 0 units'), and bank e-mandate SMS messages show a ₹1,00,000 upper limit on a ₹1,000 SIP—scaring beginners into cancelling right away.",
     evidenceSummary:
-      "14 items from the Groww Play Store dump ('F&O page remains the initial landing page regardless of the fact I don't use F&O', 'accidentally click Activate F&O / Take a Loan', 'add Telugu/Hindi support to avoid confusion in SIP').",
+      "26 items: Groww Play Store ('invest in sip money debited but didn't allot'), Quora ('started ₹1,000 SIP in Groww, why does e-mandate say ₹1 Lakh?').",
     targetUser:
-      "Mutual-fund-first beginners and Tier-2/3 investors who only want simple, safe SIP investing.",
+      "First-time mutual fund investors in Month 0–1 completing their first SIP debit.",
     productHypothesis:
-      "Remember the user's preferred home tab (Mutual Funds / SIP) on app launch, hide 'Activate F&O' prompts for MF-only cohorts, and add 1-tap Hindi/regional audio-visual explainers on how SIPs work.",
+      "Display a live 4-step allotment tracker ('Bank Debited → Sent to BSE → AMC Allotting Units on [Date] → Portfolio Updated') and a 1-line note explaining that ₹1L is a maximum bank ceiling, not a debit.",
     expectedOutcome:
-      "Reduces app-complexity frustration and builds family trust among Tier-2/3 first-time SIP investors.",
+      "Increases Month-1 mandate completion and eliminates T+2 allotment panic cancellations.",
     effortDetail:
-      "Low–Medium (3.5/10) — Persist last-used tab preference + localized SIP educational cards.",
+      "Low (3/10) — Order status timeline UI + mandate screen copy.",
     risksAndGuardrails:
-      "Zero cross-sell pressure; keeps first-time mutual fund investors focused on their long-term SIP habit.",
+      "Factual settlement timeline adjusted for market holidays.",
     validationPlan:
-      "Measure app session satisfaction and 6-month SIP retention for MF-only users defaulted to the Mutual Funds home tab.",
+      "Track Month-1 mandate survival rate and reduction in 'units not allotted' support tickets.",
     guardrailCheck: {
       noFundAdvice: true,
       noFearFomoUrgency: true,
-      complianceNote: "Removes speculative F&O clutter and improves regional-language accessibility.",
+      complianceNote: "Transparent order-settlement tracking and mandate limit clarity.",
     },
   },
 ];

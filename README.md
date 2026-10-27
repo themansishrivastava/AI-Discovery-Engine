@@ -196,6 +196,8 @@ These files are for interpreting comments, not for counting as qualitative evide
 | NSE / BSE | official research pages | Investor demographic reports |
 | CAMS / KFintech | official sites | Industry / CAS / KYC process reports |
 | Google Trends | https://trends.google.com/trends/explore?geo=IN&q=SIP | Also compare `stop SIP`, `SIP pause` against market-fall months |
+| Groww Help Center — Why was my SIP cancelled? | https://groww.in/help/mutual-funds/order/why-was-my-order-cancelled--68 | Official Groww rule: SIPs end via (1) User Cancellation Request or (2) Automatic Cancellation after 3 consecutive unpaid instalments |
+| Myfolios — Why People Stop Their SIP (And How Not To) | https://www.myfolios.in/blog/why-people-stop-their-sip | Behavioural breakdown: 1) Market fell, 2) Felt too slow in Year 1, 3) Money got tight (pause vs cancel), 4) Friend's fund did better, 5) Failed mandate, 6) No clear goal |
 | Press comment sections | Economic Times, Moneycontrol, Mint | Optional; same ethics rules |
 
 AMFI stoppage data is an **industry** benchmark. It does not measure Groww’s 12-month SIP rate.
