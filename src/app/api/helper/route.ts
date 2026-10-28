@@ -52,7 +52,7 @@ export interface FeedbackLogEntry {
 
 const feedbackLogs: FeedbackLogEntry[] = [];
 
-export function detectLanguage(text: string): HelperLang {
+function detectLanguage(text: string): HelperLang {
   // Check Devanagari script range
   if (/[\u0900-\u097F]/.test(text)) {
     return "hi";
@@ -60,7 +60,7 @@ export function detectLanguage(text: string): HelperLang {
   return "en";
 }
 
-export function deterministicClassify(text: string): {
+function deterministicClassify(text: string): {
   intent: HelperIntent;
   confidence: number;
   language: HelperLang;
@@ -195,7 +195,7 @@ async function classifyWithClaudeHaiku(text: string): Promise<{
   }
 }
 
-export function runDeterministicGate(
+function runDeterministicGate(
   classified: {
     intent: HelperIntent;
     confidence: number;
