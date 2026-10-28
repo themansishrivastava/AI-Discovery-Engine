@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="620" height="560" viewBox="0 0 620 560">
+<rect width="620" height="560" rx="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
+<text x="310" y="42" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="18" font-weight="700" fill="#0F172A">Why Users Pause or Stop SIPs (Scraped Data)</text>
+<text x="310" y="64" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="500" fill="#64748B">Distribution of drop-off triggers across 241 public reviews</text>
+<path d="M 435.73 191.02 A 128 128 0 0 0 310.00 87.00 L 310.00 151.00 A 64 64 0 0 1 372.87 203.01 Z" fill="#00B386" stroke="#FFFFFF" stroke-width="3" />
+<text x="371.2" y="146.0" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#FFFFFF">22%</text>
+<path d="M 364.50 330.82 A 128 128 0 0 0 435.73 191.02 L 372.87 203.01 A 64 64 0 0 1 337.25 272.91 Z" fill="#5367FF" stroke="#FFFFFF" stroke-width="3" />
+<text x="395.5" y="263.6" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#FFFFFF">21%</text>
+<path d="M 228.41 313.63 A 128 128 0 0 0 364.50 330.82 L 337.25 272.91 A 64 64 0 0 1 269.20 264.31 Z" fill="#38BDF8" stroke="#FFFFFF" stroke-width="3" />
+<text x="298.0" y="315.2" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#0F172A">18%</text>
+<path d="M 182.25 206.96 A 128 128 0 0 0 228.41 313.63 L 269.20 264.31 A 64 64 0 0 1 246.13 210.98 Z" fill="#F59E0B" stroke="#FFFFFF" stroke-width="3" />
+<text x="221.9" y="258.1" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#0F172A">15%</text>
+<path d="M 228.41 116.37 A 128 128 0 0 0 182.25 206.96 L 246.13 210.98 A 64 64 0 0 1 269.20 165.69 Z" fill="#EC4899" stroke="#FFFFFF" stroke-width="3" />
+<text x="224.5" y="176.4" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#0F172A">13%</text>
+<path d="M 310.00 87.00 A 128 128 0 0 0 228.41 116.37 L 269.20 165.69 A 64 64 0 0 1 310.00 151.00 Z" fill="#94A3B8" stroke="#FFFFFF" stroke-width="3" />
+<text x="277.5" y="129.7" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#0F172A">11%</text>
+<text x="310" y="213" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="22" font-weight="800" fill="#0F172A">241</text>
+<text x="310" y="231" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="600" fill="#64748B">Reviews</text>
+<rect x="45" y="356" width="530" height="28" rx="6" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" />
+<circle cx="61" cy="370" r="6" fill="#00B386" />
+<text x="77" y="375" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="500" fill="#0F172A">Money Got Tight (Skip / Pause / Edit Amount Friction)</text>
+<text x="561" y="375" text-anchor="end" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="700" fill="#0F172A">22% (53)</text>
+<rect x="45" y="390" width="530" height="28" rx="6" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" />
+<circle cx="61" cy="404" r="6" fill="#5367FF" />
+<text x="77" y="409" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="500" fill="#0F172A">Month-1 &#x27;0 Units&#x27; Allotment Delay &amp; ₹1L Mandate Fear</text>
+<text x="561" y="409" text-anchor="end" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="700" fill="#0F172A">21% (51)</text>
+<rect x="45" y="424" width="530" height="28" rx="6" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" />
+<circle cx="61" cy="438" r="6" fill="#38BDF8" />
+<text x="77" y="443" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="500" fill="#0F172A">Returns Felt Too Slow in Year 1 (No Goal Clarity)</text>
+<text x="561" y="443" text-anchor="end" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="700" fill="#0F172A">18% (43)</text>
+<rect x="45" y="458" width="530" height="28" rx="6" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" />
+<circle cx="61" cy="472" r="6" fill="#F59E0B" />
+<text x="77" y="477" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="500" fill="#0F172A">Market Fell &amp; Portfolio Showed Negative Returns</text>
+<text x="561" y="477" text-anchor="end" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="700" fill="#0F172A">15% (36)</text>
+<rect x="45" y="492" width="530" height="28" rx="6" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" />
+<circle cx="61" cy="506" r="6" fill="#EC4899" />
+<text x="77" y="511" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="500" fill="#0F172A">Autopay / Bank Debit Failed (3-Miss Auto-Cancel)</text>
+<text x="561" y="511" text-anchor="end" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="700" fill="#0F172A">13% (31)</text>
+<rect x="45" y="526" width="530" height="28" rx="6" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" />
+<circle cx="61" cy="540" r="6" fill="#94A3B8" />
+<text x="77" y="545" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="500" fill="#0F172A">Friend&#x27;s Fund Did Better (Early Switching / Clutter)</text>
+<text x="561" y="545" text-anchor="end" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="700" fill="#0F172A">11% (27)</text>
+</svg>

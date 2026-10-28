@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="620" height="560" viewBox="0 0 620 560">
+<rect width="620" height="560" rx="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
+<text x="310" y="42" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="18" font-weight="700" fill="#0F172A">User Segments in Scraped SIP Reviews</text>
+<text x="310" y="64" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="500" fill="#64748B">Distribution across 241 public reviews &amp; forum posts</text>
+<path d="M 397.62 308.31 A 128 128 0 0 0 310.00 87.00 L 310.00 151.00 A 64 64 0 0 1 353.81 261.65 Z" fill="#00B386" stroke="#FFFFFF" stroke-width="3" />
+<text x="399.3" y="184.7" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#FFFFFF">38%</text>
+<path d="M 234.76 318.55 A 128 128 0 0 0 397.62 308.31 L 353.81 261.65 A 64 64 0 0 1 272.38 266.78 Z" fill="#5367FF" stroke="#FFFFFF" stroke-width="3" />
+<text x="316.0" y="315.8" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#FFFFFF">22%</text>
+<path d="M 182.25 206.96 A 128 128 0 0 0 234.76 318.55 L 272.38 266.78 A 64 64 0 0 1 246.13 210.98 Z" fill="#38BDF8" stroke="#FFFFFF" stroke-width="3" />
+<text x="223.1" y="260.9" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#0F172A">16%</text>
+<path d="M 222.38 121.69 A 128 128 0 0 0 182.25 206.96 L 246.13 210.98 A 64 64 0 0 1 266.19 168.35 Z" fill="#F59E0B" stroke="#FFFFFF" stroke-width="3" />
+<text x="223.1" y="179.1" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#0F172A">12%</text>
+<path d="M 310.00 87.00 A 128 128 0 0 0 222.38 121.69 L 266.19 168.35 A 64 64 0 0 1 310.00 151.00 Z" fill="#94A3B8" stroke="#FFFFFF" stroke-width="3" />
+<text x="274.7" y="130.7" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" fill="#0F172A">12%</text>
+<text x="310" y="213" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="22" font-weight="800" fill="#0F172A">241</text>
+<text x="310" y="231" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="600" fill="#64748B">Reviews</text>
+<rect x="45" y="356" width="530" height="28" rx="6" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" />
+<circle cx="61" cy="370" r="6" fill="#00B386" />
+<text x="77" y="375" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="500" fill="#0F172A">Young Salaried Beginners (Age 22–28, ₹1k–₹5k SIP)</text>
+<text x="561" y="375" text-anchor="end" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="700" fill="#0F172A">38% (92)</text>
+<rect x="45" y="390" width="530" height="28" rx="6" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" />
+<circle cx="61" cy="404" r="6" fill="#5367FF" />
+<text x="77" y="409" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="500" fill="#0F172A">YouTube / Finfluencer-Driven Beginners (Multi-fund)</text>
+<text x="561" y="409" text-anchor="end" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="700" fill="#0F172A">22% (53)</text>
+<rect x="45" y="424" width="530" height="28" rx="6" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" />
+<circle cx="61" cy="438" r="6" fill="#38BDF8" />
+<text x="77" y="443" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="500" fill="#0F172A">Tier-2/3 Family-Influenced Beginners (FD vs SIP)</text>
+<text x="561" y="443" text-anchor="end" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="700" fill="#0F172A">16% (39)</text>
+<rect x="45" y="458" width="530" height="28" rx="6" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" />
+<circle cx="61" cy="472" r="6" fill="#F59E0B" />
+<text x="77" y="477" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="500" fill="#0F172A">College Students &amp; Interns (₹300–₹1,500 Micro-SIP)</text>
+<text x="561" y="477" text-anchor="end" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="700" fill="#0F172A">12% (29)</text>
+<rect x="45" y="492" width="530" height="28" rx="6" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" />
+<circle cx="61" cy="506" r="6" fill="#94A3B8" />
+<text x="77" y="511" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="500" fill="#0F172A">Experienced DIY Investors (3+ yrs tenure)</text>
+<text x="561" y="511" text-anchor="end" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="12.5" font-weight="700" fill="#0F172A">12% (28)</text>
+</svg>

@@ -553,9 +553,16 @@ ${overrideLines}
 
             <Link
               href="/evidence-log"
-              className="px-3 py-1.5 rounded-md text-xs font-semibold bg-[#00B386] hover:bg-[#009973] text-white transition whitespace-nowrap"
+              className="px-3 py-1.5 rounded-md text-xs font-medium bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 transition whitespace-nowrap"
             >
               AI Evidence Log ↗
+            </Link>
+
+            <Link
+              href="/mvp"
+              className="px-3 py-1.5 rounded-md text-xs font-semibold bg-[#00B386] hover:bg-[#009973] text-white transition whitespace-nowrap"
+            >
+              Launch AI-Native MVP ↗
             </Link>
           </div>
         </div>
