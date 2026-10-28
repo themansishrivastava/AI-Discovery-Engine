@@ -1,0 +1,86 @@
+[
+  {
+    "id": "GS-EX-01",
+    "text": "My salary is delayed to the 7th this month and I only have ₹600 left before my SIP date.",
+    "expected_intent": "tight_money",
+    "expected_gate": "answer",
+    "example": true
+  },
+  {
+    "id": "GS-EX-02",
+    "text": "इस महीने सैलरी लेट है और पैसे कम हैं, क्या मैं अपनी SIP किस्त कम कर सकता हूँ?",
+    "expected_intent": "tight_money",
+    "expected_gate": "answer",
+    "example": true
+  },
+  {
+    "id": "GS-EX-03",
+    "text": "Mera bank balance kam hai is month, festival kharcha ho gaya, SIP kaise manage karu?",
+    "expected_intent": "tight_money",
+    "expected_gate": "answer",
+    "example": true
+  },
+  {
+    "id": "GS-EX-04",
+    "text": "My bank autopay failed yesterday even though mandate was set up. How do I pay this missed instalment?",
+    "expected_intent": "failed_autopay",
+    "expected_gate": "answer",
+    "example": true
+  },
+  {
+    "id": "GS-EX-05",
+    "text": "कम बैलेंस के कारण मेरी ऑटो-पे (Autopay) किस्त फेल हो गई, अब क्या चेक करूं?",
+    "expected_intent": "failed_autopay",
+    "expected_gate": "answer",
+    "example": true
+  },
+  {
+    "id": "GS-EX-06",
+    "text": "I'm worried about the red return number (-2.42%) on my SIP dashboard after 4 months.",
+    "expected_intent": "red_return_worry",
+    "expected_gate": "answer",
+    "example": true
+  },
+  {
+    "id": "GS-EX-07",
+    "text": "Mera SIP return red mein dikh raha hai, mujhe tension ho rahi hai.",
+    "expected_intent": "red_return_worry",
+    "expected_gate": "answer",
+    "example": true
+  },
+  {
+    "id": "GS-EX-08",
+    "text": "Should I switch my SIP to Bandhan Small Cap Fund or Parag Parikh Flexi Cap?",
+    "expected_intent": "fund_advice",
+    "expected_gate": "fallback",
+    "example": true
+  },
+  {
+    "id": "GS-EX-09",
+    "text": "कौन सा म्यूचुअल फंड सबसे ज़्यादा रिटर्न देगा? मुझे किस फंड में निवेश करना चाहिए?",
+    "expected_intent": "fund_advice",
+    "expected_gate": "fallback",
+    "example": true
+  },
+  {
+    "id": "GS-EX-10",
+    "text": "Will the market fall next week or will Nifty go up next month?",
+    "expected_intent": "market_prediction",
+    "expected_gate": "fallback",
+    "example": true
+  },
+  {
+    "id": "GS-EX-11",
+    "text": "How many days before my SIP date do I need to update my instalment?",
+    "expected_intent": "general_sip_question",
+    "expected_gate": "answer",
+    "example": true
+  },
+  {
+    "id": "GS-EX-12",
+    "text": "asdf qwerty hello 123",
+    "expected_intent": "unclear",
+    "expected_gate": "fallback",
+    "example": true
+  }
+]

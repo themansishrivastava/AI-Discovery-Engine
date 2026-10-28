@@ -712,12 +712,16 @@ ${overrideLines}
                 </div>
 
                 {filteredItems.slice(0, visibleCount).map((item) => {
-                  const effectiveTheme = item.pmOverrideTheme || item.aiTheme;
-                  const effectiveStage = item.pmOverrideStage || item.aiStage;
                   const isRejected = item.pmOverrideStatus === "rejected";
                   const isCorrected = item.pmOverrideStatus === "corrected";
                   const isExpanded = !!expandedCards[item.id];
                   const isLong = item.text.length > 150;
+                  const srcLower = item.source.toLowerCase();
+                  const sourceIcon = srcLower.includes("play store")
+                    ? "/icon-playstore.png"
+                    : srcLower.includes("reddit")
+                    ? "/icon-reddit.png"
+                    : "/icon-review.png";
 
                   return (
                     <div
@@ -729,13 +733,14 @@ ${overrideLines}
                       <div className="flex items-start justify-between gap-3">
                         <div className="space-y-1">
                           <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
-                            <span className="font-mono font-medium text-slate-700">{item.id}</span>
-                            <span>•</span>
-                            <span className="font-medium text-slate-800">{effectiveTheme}</span>
-                            <span>•</span>
-                            <span>{JOURNEY_STAGE_LABELS[effectiveStage].months}</span>
-                            <span>•</span>
-                            <span>{item.source}</span>
+                            <span className="font-mono font-semibold text-slate-700">{item.id}</span>
+                            <span>-</span>
+                            <img
+                              src={sourceIcon}
+                              alt={item.source}
+                              className="w-4 h-4 rounded-sm object-contain shrink-0"
+                            />
+                            <span className="font-medium text-slate-700">{item.source}</span>
                             {isCorrected && (
                               <span className="font-semibold text-slate-900 underline">
                                 (PM Corrected)

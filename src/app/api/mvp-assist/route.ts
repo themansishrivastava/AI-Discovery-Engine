@@ -31,7 +31,7 @@ export interface MvpEvalGateResult {
 }
 
 const ADVICE_TRIGGER_REGEX =
-  /\b(which fund|best fund|better fund|switch to|bandhan|small cap|mid cap|parag parikh|quant|buy or sell|predict|will market|target price|recommend|suggest a fund|top fund|guarantee|double my money|f&o|options|intraday)\b/i;
+  /\b(which fund|which mutual fund|best fund|better fund|switch to|bandhan|small cap|mid cap|parag parikh|quant|buy or sell|should i sell|should i buy|should i redeem|will nifty|fall more|go up|25% return|20% return|predict|will market|target price|recommend|suggest a fund|top fund|guarantee|double my money|f&o|options|intraday)\b/i;
 
 function evaluateAndRespond(userQuery: string, sipAmount = 2000, sipDate = 1): MvpEvalGateResult {
   const q = userQuery.toLowerCase();
