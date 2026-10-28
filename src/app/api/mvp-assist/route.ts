@@ -58,8 +58,8 @@ function evaluateAndRespond(userQuery: string, sipAmount = 2000, sipDate = 1): M
         },
         officialSourceLink: {
           status: "PASS",
-          url: "https://www.amfiindia.com/investor-corner/knowledge-center/what-is-sip.html",
-          label: "AMFI Official SIP & Risk Disclosure Guide",
+          url: "https://www.amfiindia.com/articles/mutual-fund",
+          label: "AMFI Official Mutual Fund & SIP Guide",
         },
       },
       assistantResponse: {
